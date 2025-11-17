@@ -9,7 +9,7 @@ export interface ImageCoords {
 // Example interface
 export interface ModifiedObject extends Document, ImageObject {
   itemFunction: "Gallery" | "Link" | "Board" | "None";
-  additionalData?: string;
+  additionalData?: any;
   coordinates: ImageCoords;
 }
 
@@ -22,7 +22,7 @@ const ModifiedObjectSchema: Schema = new Schema(
             required: true,
             trim: true,
         },
-        additionalData: { type: String, trim: true },
+        additionalData: { type: Schema.Types.Mixed },
         coordinates: {
             x: { type: Number, required: true },
             y: { type: Number, required: true },

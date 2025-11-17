@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Document, Model, ObjectId } from "mongoose";
 
 export interface Theme {
     floorColor: string;
@@ -7,13 +7,13 @@ export interface Theme {
 }
 
 export interface User extends Document {
-  name: string;
+  name?: string;
   email: string;
   password: string;
   theme: Theme;
   invitation?: string;
-  objectIds: string[];
-  modifiedObjectIds: string[];
+  objectIds: ObjectId[];
+  modifiedObjectIds: ObjectId[];
   createdAt: Date;
 }
 
@@ -22,7 +22,6 @@ const UserSchema: Schema = new Schema(
   {
     name: {
       type: String,
-      required: true,
       trim: true,
     },
     email: {
@@ -48,11 +47,11 @@ const UserSchema: Schema = new Schema(
       trim: true,
     },
     objectIds: {
-      type: [String],
+      type: [Schema.Types.ObjectId],
       default: [],
     },
     modifiedObjectIds: {
-      type: [String],
+      type: [Schema.Types.ObjectId],
       default: [],
     },
     createdAt: {

@@ -1,6 +1,8 @@
 import { Request, Response, Router } from 'express';
 import bcrypt from 'bcryptjs';
-import {User} from '../models/UserModel';
+import { User } from '../models/UserModel';
+import { generateToken } from '../utils/jwt';
+import { authenticateLocal, authenticateJWT } from '../middleware/auth';
 
 type SignupBody = {
     name?: string;
@@ -15,6 +17,8 @@ type LoginBody = {
 
 const signupRouter = Router();
 const loginRouter = Router();
+const profileRouter = Router();
+const verifyRouter = Router();
 
 signupRouter.post("/", async (req: Request<{}, {}, SignupBody>, res: Response) => {
     try {
@@ -40,20 +44,33 @@ signupRouter.post("/", async (req: Request<{}, {}, SignupBody>, res: Response) =
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // create user
+        // create user with default theme
         const user = new User({
             name,
             email,
             password: hashedPassword,
+            theme: {
+                floorColor: '#ffffff',
+                wallColor: '#ffffff',
+                weather: 'sunny'
+            }
         });
 
         await user.save();
 
-        // return safe user data
+        // generate JWT token
+        const token = generateToken({
+            id: (user._id as any).toString(),
+            email: user.email,
+            name: user.name,
+        });
+
+        // return safe user data with token
         return res.status(201).json({
             id: user._id,
             name: user.name,
             email: user.email,
+            token,
         });
     } catch (err) {
         console.error('Signup error:', err);
@@ -61,35 +78,24 @@ signupRouter.post("/", async (req: Request<{}, {}, SignupBody>, res: Response) =
     }
 });
 
-// Login Router biz
-loginRouter.post("/", async (req: Request<{}, {}, LoginBody>, res: Response) => {
+// Login Router - using Passport Local Strategy
+loginRouter.post("/", authenticateLocal, (req: Request, res: Response) => {
     try {
-        const { email, password } = req.body;
+        // User is authenticated by Passport middleware
+        const user = req.user!;
 
-        if (!email || !password) {
-            return res.status(400).json({ message: 'email and password are required' });
-        }
-
-        // basic email format check
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ message: 'invalid email format' });
-        }
-
-        const user = await User.findOne({ email }).exec();
-        if (!user) {
-            return res.status(401).json({ message: 'invalid credentials' });
-        }
-
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-            return res.status(401).json({ message: 'invalid credentials' });
-        }
+        // Generate JWT token
+        const token = generateToken({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+        });
 
         return res.status(200).json({
-            id: user._id,
+            id: user.id,
             name: user.name,
             email: user.email,
+            token,
         });
     } catch (err) {
         console.error('Login error:', err);
@@ -97,4 +103,44 @@ loginRouter.post("/", async (req: Request<{}, {}, LoginBody>, res: Response) => 
     }
 });
 
-export { signupRouter, loginRouter };
+// Profile Route - Protected
+profileRouter.get("/", authenticateJWT, (req: Request, res: Response) => {
+    try {
+        const user = req.user!;
+        
+        return res.status(200).json({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            theme: user.theme,
+            invitation: user.invitation,
+            objectIds: user.objectIds,
+            modifiedObjectIds: user.modifiedObjectIds,
+            createdAt: user.createdAt,
+        });
+    } catch (err) {
+        console.error('Profile error:', err);
+        return res.status(500).json({ message: 'internal server error' });
+    }
+});
+
+// Verify Token Route
+verifyRouter.get("/", authenticateJWT, (req: Request, res: Response) => {
+    try {
+        const user = req.user!;
+        
+        return res.status(200).json({
+            valid: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            }
+        });
+    } catch (err) {
+        console.error('Verify token error:', err);
+        return res.status(500).json({ message: 'internal server error' });
+    }
+});
+
+export { signupRouter, loginRouter, profileRouter, verifyRouter };

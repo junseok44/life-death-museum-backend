@@ -1,6 +1,7 @@
 import { Application } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+import { passport } from "../config/passport";
 
 export const setupMiddleware = (app: Application): void => {
   // CORS configuration - wildcard
@@ -16,6 +17,9 @@ export const setupMiddleware = (app: Application): void => {
   // Body parser middleware
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
+
+  // Initialize Passport
+  app.use(passport.initialize());
 
   // Request logging middleware (development only)
   if (process.env.NODE_ENV === "development") {

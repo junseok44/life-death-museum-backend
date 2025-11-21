@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import passport from 'passport';
+import { passport } from '../config/passport';
 
 // JWT Authentication middleware
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {

@@ -34,7 +34,7 @@ export const authenticateLocal = (req: Request, res: Response, next: NextFunctio
       // In development, include error details in the response
       const isDev = process.env.NODE_ENV === 'development';
       return res.status(500).json({
-        message: isDev && err && err.message ? `Authentication error: ${err.message}` : 'Authentication error'
+        message: isDev && err.message ? `Authentication error: ${err.message}` : 'Authentication error'
       });
     }
 

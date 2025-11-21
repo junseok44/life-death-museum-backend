@@ -55,18 +55,12 @@ passport.use(
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: JWT_SECRET,
     },
-    async (payload, done) => {
-      try {
-        // Find user by ID from JWT payload
-        const user = await User.findById(payload.id).select('-password').exec();
-        if (!user) {
-          return done(null, false);
-        }
-
-        return done(null, user as any);
-      } catch (error) {
-        return done(error, false);
+    (payload, done) => {
+      // Directly return the payload as the user object
+      if (!payload) {
+        return done(null, false);
       }
+      return done(null, payload);
     }
   )
 );

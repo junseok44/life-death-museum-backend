@@ -14,15 +14,6 @@ export const generateToken = (payload: JWTPayload): string => {
   });
 };
 
-// Verify JWT token
-export const verifyToken = (token: string): JWTPayload | null => {
-  try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch (error) {
-    return null;
-  }
-};
-
 // Generate refresh token 
 export const generateRefreshToken = (payload: JWTPayload): string => {
   return jwt.sign(payload, JWT_SECRET, {

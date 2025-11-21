@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import { User } from '../models/UserModel';
 
 // JWT Secret - should be in environment variables
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET: string = process.env.JWT_SECRET!;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is not set. Please set it to a secure value.');
 }
@@ -37,7 +37,6 @@ passport.use(
           name: user.name,
           email: user.email,
           theme: user.theme,
-          invitation: user.invitation,
           objectIds: user.objectIds,
           modifiedObjectIds: user.modifiedObjectIds,
           createdAt: user.createdAt,

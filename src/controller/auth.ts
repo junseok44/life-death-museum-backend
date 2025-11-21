@@ -6,8 +6,8 @@ import { authenticateLocal, authenticateJWT } from '../middleware/auth';
 
 type SignupBody = {
     name?: string;
-    email?: string;
-    password?: string;
+    email: string;
+    password: string;
 };
 
 type LoginBody = {
@@ -22,9 +22,9 @@ const verifyRouter = Router();
 
 signupRouter.post("/", async (req: Request<{}, {}, SignupBody>, res: Response) => {
     try {
-        const { name, email, password } = req.body;
+        const { email, password } = req.body;
 
-        if (!email || !password || !name) {
+        if (!email || !password ) {
             return res.status(400).json({ message: 'name, email and password are required' });
         }
 
@@ -46,7 +46,6 @@ signupRouter.post("/", async (req: Request<{}, {}, SignupBody>, res: Response) =
 
         // create user with default theme
         const user = new User({
-            name,
             email,
             password: hashedPassword,
             theme: {
@@ -62,13 +61,11 @@ signupRouter.post("/", async (req: Request<{}, {}, SignupBody>, res: Response) =
         const token = generateToken({
             id: (user._id as any).toString(),
             email: user.email,
-            name: user.name,
         });
 
         // return safe user data with token
         return res.status(201).json({
             id: user._id,
-            name: user.name,
             email: user.email,
             token,
         });
@@ -88,12 +85,10 @@ loginRouter.post("/", authenticateLocal, (req: Request, res: Response) => {
         const token = generateToken({
             id: user.id,
             email: user.email,
-            name: user.name,
         });
 
         return res.status(200).json({
             id: user.id,
-            name: user.name,
             email: user.email,
             token,
         });
@@ -113,7 +108,6 @@ profileRouter.get("/", authenticateJWT, (req: Request, res: Response) => {
             name: user.name,
             email: user.email,
             theme: user.theme,
-            invitation: user.invitation,
             objectIds: user.objectIds,
             modifiedObjectIds: user.modifiedObjectIds,
             createdAt: user.createdAt,
@@ -133,7 +127,6 @@ verifyRouter.get("/", authenticateJWT, (req: Request, res: Response) => {
             valid: true,
             user: {
                 id: user.id,
-                name: user.name,
                 email: user.email,
             }
         });

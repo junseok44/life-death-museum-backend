@@ -38,7 +38,13 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
 export const authenticateLocal = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('local', { session: false }, (err: any, user: any, info: any) => {
     if (err) {
-      return res.status(500).json({ message: 'Authentication error' });
+      // Log the error for debugging purposes
+      console.error('Authentication error:', err);
+      // In development, include error details in the response
+      const isDev = process.env.NODE_ENV === 'development';
+      return res.status(500).json({
+        message: isDev && err && err.message ? `Authentication error: ${err.message}` : 'Authentication error'
+      });
     }
 
     if (!user) {

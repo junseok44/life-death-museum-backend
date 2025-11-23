@@ -1,0 +1,197 @@
+import { ModifiedObject, ModifiedObjectModel } from "../models/ModifiedObject";
+import { ImageSet } from "../models/ObjectModel";
+import { User } from "../models/UserModel";
+
+export interface CreateModifiedParams {
+  name: string;
+  imageSrc: string;
+  itemFunction: "Gallery" | "Link" | "Board" | null;
+  coordinates: {
+    x: number;
+    y: number;
+  };
+  imageSets?: ImageSet[];
+  description?: string;
+}
+
+export interface UpdateModifiedParams {
+  name?: string;
+  description?: string;
+  itemFunction?: "Gallery" | "Link" | "Board" | null;
+  additionalInfos?: unknown;
+  coordinates?: {
+    x: number;
+    y: number;
+  };
+  imageSrc?: string;
+  imageSets?: ImageSet[];
+}
+
+/**
+ * Modified Service
+ * Handles business logic for modified object operations
+ */
+export class ModifiedService {
+  /**
+   * Create a new modified object
+   */
+  static async createModified(
+    params: CreateModifiedParams,
+    userId: string
+  ): Promise<ModifiedObject> {
+    const {
+      name,
+      imageSrc,
+      itemFunction,
+      coordinates,
+      imageSets,
+      description,
+    } = params;
+
+    // Create new modified object
+    const newModified = new ModifiedObjectModel({
+      name: name.trim(),
+      imageSrc,
+      description: description?.trim(),
+      itemFunction: itemFunction ?? null,
+      coordinates,
+      imageSets: imageSets
+        ? imageSets.map((set) => ({
+            name: set.name.trim(),
+            color: set.color.trim(),
+            src: set.src.trim(),
+          }))
+        : [],
+      isUserMade: true, // Modified objects are always user-made
+      onType: "Floor", // Default, can be changed if needed
+    });
+
+    const savedModified = await newModified.save();
+
+    // Update user's modifiedObjectIds
+    await User.findByIdAndUpdate(userId, {
+      $push: { modifiedObjectIds: savedModified._id },
+    });
+
+    return savedModified;
+  }
+
+  /**
+   * Update an existing modified object
+   */
+  static async updateModified(
+    modifiedId: string,
+    params: UpdateModifiedParams,
+    userId: string
+  ): Promise<ModifiedObject> {
+    const modified = await ModifiedObjectModel.findById(modifiedId).exec();
+
+    if (!modified) {
+      throw new Error("Modified object not found");
+    }
+
+    // Check if user owns this modified object
+    const user = await User.findById(userId).exec();
+    if (!user || !user.modifiedObjectIds.includes(modified._id)) {
+      throw new Error(
+        "Forbidden: You don't have permission to update this object"
+      );
+    }
+
+    // Check imageSrc update permission
+    // imageSrc can only be updated when isUserMade is false (preset objects)
+    if (params.imageSrc !== undefined) {
+      if (modified.isUserMade) {
+        throw new Error(
+          "imageSrc can only be updated for preset objects (isUserMade: false)"
+        );
+      }
+    }
+
+    // imageSets cannot be updated via updateModified
+    if (params.imageSets !== undefined) {
+      throw new Error(
+        "imageSets cannot be updated. Please create a new modified object instead."
+      );
+    }
+
+    // Update fields
+    if (params.name !== undefined) {
+      modified.name = params.name.trim();
+    }
+    if (params.description !== undefined) {
+      modified.description = params.description?.trim();
+    }
+    if (params.itemFunction !== undefined) {
+      modified.itemFunction = params.itemFunction ?? null;
+    }
+    if (params.additionalInfos !== undefined) {
+      modified.additionalData = params.additionalInfos;
+    }
+    if (params.coordinates !== undefined) {
+      modified.coordinates = params.coordinates;
+    }
+    if (params.imageSrc !== undefined) {
+      modified.imageSrc = params.imageSrc;
+    }
+    // Note: imageSets cannot be updated (checked earlier in the function)
+
+    const updatedModified = await modified.save();
+    return updatedModified;
+  }
+
+  /**
+   * Get all modified objects for a user
+   */
+  static async getAllModified(userId: string): Promise<ModifiedObject[]> {
+    const user = await User.findById(userId).exec();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // If user has no modified objects, return empty array
+    if (!user.modifiedObjectIds || user.modifiedObjectIds.length === 0) {
+      return [];
+    }
+
+    // Fetch modified objects using user's modifiedObjectIds
+    const modifiedObjects = await ModifiedObjectModel.find({
+      _id: { $in: user.modifiedObjectIds },
+    })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return modifiedObjects;
+  }
+
+  /**
+   * Delete a modified object
+   */
+  static async deleteModified(
+    modifiedId: string,
+    userId: string
+  ): Promise<void> {
+    const modified = await ModifiedObjectModel.findById(modifiedId).exec();
+
+    if (!modified) {
+      throw new Error("Modified object not found");
+    }
+
+    // Check if user owns this modified object
+    const user = await User.findById(userId).exec();
+    if (!user || !user.modifiedObjectIds.includes(modified._id)) {
+      throw new Error(
+        "Forbidden: You don't have permission to delete this object"
+      );
+    }
+
+    // Remove from user's modifiedObjectIds
+    await User.findByIdAndUpdate(userId, {
+      $pull: { modifiedObjectIds: modified._id },
+    });
+
+    // Delete the modified object
+    await ModifiedObjectModel.findByIdAndDelete(modifiedId).exec();
+  }
+}

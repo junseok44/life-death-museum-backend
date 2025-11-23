@@ -40,6 +40,9 @@ declare global {
     interface User extends JWTPayload {}
     interface Request {
       user?: User;
+      files?:
+        | Express.Multer.File[]
+        | { [fieldname: string]: Express.Multer.File[] };
     }
   }
 }

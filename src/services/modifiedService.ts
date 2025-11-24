@@ -19,7 +19,7 @@ export interface UpdateModifiedParams {
   name?: string;
   description?: string;
   itemFunction?: "Gallery" | "Link" | "Board" | null;
-  additionalInfos?: unknown;
+  additionalData?: unknown;
   coordinates?: {
     x: number;
     y: number;
@@ -129,8 +129,8 @@ export class ModifiedService {
     if (params.itemFunction !== undefined) {
       modified.itemFunction = params.itemFunction ?? null;
     }
-    if (params.additionalInfos !== undefined) {
-      modified.additionalData = params.additionalInfos;
+    if (params.additionalData !== undefined) {
+      modified.additionalData = params.additionalData;
     }
     if (params.coordinates !== undefined) {
       modified.coordinates = params.coordinates;

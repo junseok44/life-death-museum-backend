@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document, Model, ObjectId } from "mongoose";
 
 export interface Theme {
-    floorColor: string;
-    wallColor: string;
-    weather: "sunny" | "raining" | "cloudy" | "snowing" | "night" | "sunset";
+  floorColor: string;
+  wallColor: string;
+  weather: "sunny" | "raining" | "cloudy" | "snowing" | "night" | "sunset";
 }
 
 export interface User extends Document {
@@ -16,6 +16,7 @@ export interface User extends Document {
   objectIds: ObjectId[];
   modifiedObjectIds: ObjectId[];
   createdAt: Date;
+  questionIndex: number;
 }
 
 // User schema
@@ -55,6 +56,10 @@ const UserSchema: Schema = new Schema(
       type: [Schema.Types.ObjectId],
       default: [],
     },
+    questionIndex: {
+      type: Number,
+      default: 0,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -66,8 +71,4 @@ const UserSchema: Schema = new Schema(
 );
 
 // User model
-export const User: Model<User> = mongoose.model<User>(
-  "User",
-  UserSchema
-);
-
+export const User: Model<User> = mongoose.model<User>("User", UserSchema);

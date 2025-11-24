@@ -133,9 +133,12 @@ export class ObjectService {
 
     const savedObject = await newObject.save();
 
-    // Update user's objectIds
+    // Update user's objectIds and questionIndex
     await User.findByIdAndUpdate(userId, {
       $push: { objectIds: savedObject._id },
+      $inc: {
+        questionIndex: 1,
+      },
     });
 
     return {

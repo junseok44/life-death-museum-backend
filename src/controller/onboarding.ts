@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction, response } from "express";
 import { authenticateJWT } from "../middleware/auth";
+import { on } from "events";
 
 export const onboardingRouter = Router();
 
@@ -8,7 +9,7 @@ interface OnboardingResponse {
     answer: string;
 }
 
-const onboardingQuestions: string[] = [
+const themeQuestions: string[] = [
     "어떤 칭찬을 들으면 기분이 좋던가요?",
     "평소에 무엇을 기대하며 살고 있나요?",
     "주변 사람들에게 어떻게 기억되고 싶은가요?",
@@ -20,7 +21,7 @@ onboardingRouter.get("/theme", authenticateJWT, (req: Request, res: Response, ne
     try {
         res.status(200).json({
             status: "success",
-            questions: onboardingQuestions
+            questions: themeQuestions
         });
     } catch (error) {
         next(error);
@@ -39,9 +40,9 @@ onboardingRouter.post("/theme", authenticateJWT, (req: Request, res: Response, n
             });
         }
 
-        // if responses are less than onboardingQuestions length, return error
-        if (!responses || responses.length < onboardingQuestions.length) {
-            console.log("Received onboarding data:", responses);
+        // if responses are less than themeQuestions length, return error
+        if (!responses || responses.length < themeQuestions.length) {
+            console.log("Received theme data:", responses);
             return res.status(400).json({
                 status: "error",
                 message: "Incomplete responses"

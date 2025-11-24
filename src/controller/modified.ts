@@ -1,6 +1,14 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { authenticateJWT } from "../middleware/auth";
+import { validate } from "../middleware/validation";
 import { ModifiedService } from "../services/modifiedService";
+import {
+  createModifiedSchema,
+  updateModifiedSchema,
+  type CreateModifiedBody,
+  type UpdateModifiedBody,
+  type UpdateModifiedParams,
+} from "../validators/modified.validator";
 
 export const modifiedRouter = Router();
 
@@ -8,8 +16,10 @@ export const modifiedRouter = Router();
 modifiedRouter.post(
   "/",
   authenticateJWT,
+  validate(createModifiedSchema),
   async (req: Request, res: Response, _next: NextFunction) => {
     try {
+      const body: CreateModifiedBody = req.body;
       const {
         name,
         imageSrc,
@@ -18,106 +28,8 @@ modifiedRouter.post(
         imageSets,
         description,
         isReversed,
-      } = req.body;
+      } = body;
       const userId = req.user!.id;
-
-      // Validate required fields
-      if (!name || typeof name !== "string" || name.trim().length === 0) {
-        return res.status(400).json({
-          message: "name field is required and must be a non-empty string",
-        });
-      }
-
-      if (!imageSrc || typeof imageSrc !== "string") {
-        return res.status(400).json({
-          message: "imageSrc field is required and must be a string",
-        });
-      }
-
-      if (itemFunction === undefined) {
-        return res.status(400).json({
-          message: "itemFunction field is required",
-        });
-      }
-
-      if (
-        itemFunction !== null &&
-        !["Gallery", "Link", "Board"].includes(itemFunction)
-      ) {
-        return res.status(400).json({
-          message:
-            'itemFunction must be one of: "Gallery", "Link", "Board", or null',
-        });
-      }
-
-      if (!coordinates || typeof coordinates !== "object") {
-        return res.status(400).json({
-          message: "coordinates field is required and must be an object",
-        });
-      }
-
-      if (
-        typeof coordinates.x !== "number" ||
-        typeof coordinates.y !== "number"
-      ) {
-        return res.status(400).json({
-          message:
-            "coordinates.x and coordinates.y are required and must be numbers",
-        });
-      }
-
-      // Validate isReversed if provided
-      if (isReversed !== undefined && typeof isReversed !== "boolean") {
-        return res.status(400).json({
-          message: "isReversed must be a boolean",
-        });
-      }
-
-      // Validate imageSets if provided
-      if (imageSets !== undefined) {
-        if (!Array.isArray(imageSets)) {
-          return res.status(400).json({
-            message: "imageSets must be an array",
-          });
-        }
-
-        // Validate each imageSet if array is not empty
-        for (let i = 0; i < imageSets.length; i++) {
-          const imageSet = imageSets[i];
-          if (!imageSet || typeof imageSet !== "object") {
-            return res.status(400).json({
-              message: `imageSets[${i}] must be an object`,
-            });
-          }
-          if (
-            !imageSet.name ||
-            typeof imageSet.name !== "string" ||
-            imageSet.name.trim().length === 0
-          ) {
-            return res.status(400).json({
-              message: `imageSets[${i}].name is required and must be a non-empty string`,
-            });
-          }
-          if (
-            !imageSet.color ||
-            typeof imageSet.color !== "string" ||
-            imageSet.color.trim().length === 0
-          ) {
-            return res.status(400).json({
-              message: `imageSets[${i}].color is required and must be a non-empty string`,
-            });
-          }
-          if (
-            !imageSet.src ||
-            typeof imageSet.src !== "string" ||
-            imageSet.src.trim().length === 0
-          ) {
-            return res.status(400).json({
-              message: `imageSets[${i}].src is required and must be a non-empty string`,
-            });
-          }
-        }
-      }
 
       // Create modified object using service
       const modified = await ModifiedService.createModified(
@@ -147,10 +59,13 @@ modifiedRouter.post(
 modifiedRouter.patch(
   "/:id",
   authenticateJWT,
+  validate(updateModifiedSchema),
   async (req: Request, res: Response, _next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const params: UpdateModifiedParams = req.params as UpdateModifiedParams;
+      const { id } = params;
       const userId = req.user!.id;
+      const body: UpdateModifiedBody = req.body;
       const {
         name,
         description,
@@ -158,62 +73,8 @@ modifiedRouter.patch(
         additionalData,
         coordinates,
         imageSrc,
-        imageSets,
         isReversed,
-      } = req.body;
-
-      // Check if request body is empty
-      if (Object.keys(req.body).length === 0) {
-        return res.status(400).json({
-          message: "Request body cannot be empty",
-        });
-      }
-
-      // imageSets cannot be updated via PATCH endpoint
-      if (imageSets !== undefined) {
-        return res.status(400).json({
-          message:
-            "imageSets cannot be updated. Please create a new modified object instead.",
-        });
-      }
-
-      // Validate coordinates if provided
-      if (coordinates !== undefined) {
-        if (typeof coordinates !== "object") {
-          return res.status(400).json({
-            message: "coordinates must be an object",
-          });
-        }
-        if (
-          typeof coordinates.x !== "number" ||
-          typeof coordinates.y !== "number"
-        ) {
-          return res.status(400).json({
-            message:
-              "coordinates.x and coordinates.y are required and must be numbers",
-          });
-        }
-      }
-
-      // Validate itemFunction if provided
-      if (itemFunction !== undefined) {
-        if (
-          itemFunction !== null &&
-          !["Gallery", "Link", "Board"].includes(itemFunction)
-        ) {
-          return res.status(400).json({
-            message:
-              'itemFunction must be one of: "Gallery", "Link", "Board", or null',
-          });
-        }
-      }
-
-      // Validate isReversed if provided
-      if (isReversed !== undefined && typeof isReversed !== "boolean") {
-        return res.status(400).json({
-          message: "isReversed must be a boolean",
-        });
-      }
+      } = body;
 
       // Update modified object using service
       const updatedModified = await ModifiedService.updateModified(
@@ -225,7 +86,6 @@ modifiedRouter.patch(
           additionalData,
           coordinates,
           imageSrc,
-          imageSets,
           isReversed,
         },
         userId

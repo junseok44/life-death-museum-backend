@@ -1,5 +1,6 @@
 import { ImageObject } from "../models/ObjectModel";
 import { User } from "../models/UserModel";
+import mongoose from "mongoose";
 import { textGenerator, imageGenerator } from "./ai-services";
 import { ObjectPrompts } from "../prompts/objectPrompts";
 import { storage } from "./storage";
@@ -133,18 +134,49 @@ export class ObjectService {
 
     const savedObject = await newObject.save();
 
-    // Update user's objectIds and questionIndex
-    await User.findByIdAndUpdate(userId, {
-      $push: { objectIds: savedObject._id },
-      $inc: {
-        questionIndex: 1,
-      },
-    });
-
     return {
       object: savedObject,
       userId,
     };
+  }
+
+  /**
+   * Add an object to user's inventory
+   * Adds objectId to user's objectIds array and increments questionIndex
+   */
+  static async addObjectToInventory(
+    objectId: string,
+    userId: string
+  ): Promise<void> {
+    // Verify object exists and is user-made
+    const object = await ImageObject.findById(objectId).exec();
+    if (!object) {
+      throw new Error("Object not found");
+    }
+    if (!object.isUserMade) {
+      throw new Error("Only user-made objects can be added to inventory");
+    }
+
+    // Check if object is already in user's inventory
+    const user = await User.findById(userId).exec();
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const objectIdString = String(object._id);
+    if (
+      user.objectIds &&
+      user.objectIds.some((id) => id.toString() === objectIdString)
+    ) {
+      throw new Error("Object is already in user's inventory");
+    }
+
+    // Add object to user's inventory and increment questionIndex
+    await User.findByIdAndUpdate(userId, {
+      $push: { objectIds: object._id as mongoose.Types.ObjectId },
+      $inc: {
+        questionIndex: 1,
+      },
+    });
   }
 
   /**

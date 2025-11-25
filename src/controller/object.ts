@@ -9,10 +9,12 @@ import {
   followupQuestionSchema,
   createObjectSchema,
   createBasicObjectSchema,
+  addObjectToInventorySchema,
   updateObjectSchema,
   type FollowupQuestionBody,
   type CreateObjectBody,
   type CreateBasicObjectBody,
+  type AddObjectToInventoryBody,
   type UpdateObjectBody,
   type UpdateObjectParams,
 } from "../validators/object.validator";
@@ -64,6 +66,56 @@ objectRouter.post(
       console.error("Error creating object:", error);
       res.status(500).json({
         message: "Failed to create object",
+      });
+    }
+  }
+);
+
+// POST /object/add - Add user object to user's inventory
+objectRouter.post(
+  "/add",
+  authenticateJWT,
+  validate(addObjectToInventorySchema),
+  async (req: Request, res: Response, _next: NextFunction) => {
+    try {
+      const body: AddObjectToInventoryBody = req.body;
+      const { objectId } = body;
+      const userId = req.user!.id;
+
+      // Add object to inventory using service
+      await ObjectService.addObjectToInventory(objectId, userId);
+
+      res.status(201).json({
+        message: "Object added to inventory successfully",
+      });
+    } catch (error) {
+      console.error("Error adding object to inventory:", error);
+      if (error instanceof Error) {
+        if (error.message === "Object not found") {
+          return res.status(400).json({
+            message: "Object not found",
+          });
+        }
+        if (
+          error.message === "Only user-made objects can be added to inventory"
+        ) {
+          return res.status(400).json({
+            message: "Only user-made objects can be added to inventory",
+          });
+        }
+        if (error.message === "Object is already in user's inventory") {
+          return res.status(400).json({
+            message: "Object is already in user's inventory",
+          });
+        }
+        if (error.message === "User not found") {
+          return res.status(400).json({
+            message: "User not found",
+          });
+        }
+      }
+      res.status(500).json({
+        message: "Failed to add object to inventory",
       });
     }
   }

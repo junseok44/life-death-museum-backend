@@ -45,6 +45,18 @@ export const createBasicObjectSchema = z.object({
     .passthrough(), // imageSets[0][name] 같은 평면 키도 허용
 });
 
+// POST /object/add 스키마
+export const addObjectToInventorySchema = z.object({
+  body: z.object({
+    objectId: z
+      .string()
+      .min(1, "objectId field is required and must be a non-empty string")
+      .refine((objectId) => mongoose.Types.ObjectId.isValid(objectId), {
+        message: "objectId is not a valid ObjectId",
+      }),
+  }),
+});
+
 // PATCH /object/:objectId 스키마
 export const updateObjectSchema = z.object({
   params: z.object({
@@ -83,6 +95,9 @@ export type FollowupQuestionBody = z.infer<
 export type CreateObjectBody = z.infer<typeof createObjectSchema>["body"];
 export type CreateBasicObjectBody = z.infer<
   typeof createBasicObjectSchema
+>["body"];
+export type AddObjectToInventoryBody = z.infer<
+  typeof addObjectToInventorySchema
 >["body"];
 export type UpdateObjectBody = z.infer<typeof updateObjectSchema>["body"];
 export type UpdateObjectParams = z.infer<typeof updateObjectSchema>["params"];

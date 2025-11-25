@@ -1,13 +1,9 @@
 import { Application } from "express";
-import { exampleRouter } from "./_example";
 import { signupRouter, loginRouter, profileRouter, verifyRouter } from "./auth";
 import { objectRouter } from "./object";
 import { modifiedRouter } from "./modified";
 
 export const setupRoutes = (app: Application): void => {
-  // API routes
-  app.use("/api/example", exampleRouter);
-
   // Auth routes
   app.use("/auth/signup", signupRouter);
   app.use("/auth/login", loginRouter);

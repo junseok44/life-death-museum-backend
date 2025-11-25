@@ -125,7 +125,7 @@ export class ObjectService {
     const newObject = new ImageObject({
       name: name.trim(),
       description: description.trim(),
-      imageSrc: imageUrl,
+      currentImageSet: imageSets[0],
       imageSets,
       isUserMade: true,
       onType,
@@ -175,12 +175,12 @@ export class ObjectService {
     );
 
     // Use first image as imageSrc
-    const imageSrc = uploadedImageSets[0]?.src || "";
+    const currentImageSet = uploadedImageSets[0];
 
     // Create preset object
     const newObject = new ImageObject({
       name: name.trim(),
-      imageSrc,
+      currentImageSet,
       description: description?.trim(),
       imageSets: uploadedImageSets,
       isUserMade: false,

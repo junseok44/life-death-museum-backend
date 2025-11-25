@@ -60,7 +60,7 @@ export interface UserPayload extends JWTPayload {
 /* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Express {
-    interface User extends UserPayload {}
+    interface User extends JWTPayload {}
     interface Request {
       user?: User;
       files?:

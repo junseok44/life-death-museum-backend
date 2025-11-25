@@ -101,12 +101,19 @@ loginRouter.post("/", authenticateLocal, (req: Request, res: Response) => {
 });
 
 // Profile Route - Protected
-profileRouter.get("/", authenticateJWT, (req: Request, res: Response) => {
+profileRouter.get("/", authenticateJWT, async (req: Request, res: Response) => {
     try {
-        const user = req.user!;
+        const jwtPayload = req.user!;
+        
+        // Fetch full user data from database
+        const user = await User.findById(jwtPayload.id).exec();
+        
+        if (!user) {
+            return res.status(404).json({ message: 'user not found' });
+        }
         
         return res.status(200).json({
-            id: user.id,
+            id: user._id,
             name: user.name,
             email: user.email,
             theme: user.theme,

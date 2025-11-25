@@ -30,6 +30,22 @@ interface ImageGenerationResult {
   created: number;
 }
 
+/**
+ * Result structure for theme analysis
+ */
+interface ThemeAnalysisResult {
+  choice: number;
+  reason: string;
+}
+
+/**
+ * Onboarding response structure
+ */
+interface OnboardingResponse {
+  question: string;
+  answer: string;
+}
+
 // --- 1. Text Generation Interface ---
 
 interface TextGeneratorInterface {
@@ -69,9 +85,34 @@ interface ImageGeneratorInterface {
   ): Promise<ImageGenerationResult>;
 }
 
+// --- 3. Theme Analysis Interface ---
+
+interface ThemeAnalyzerInterface {
+  /**
+   * Analyzes user onboarding responses and recommends a memorial theme.
+   * @param responses Array of 5 question-answer pairs from onboarding
+   * @returns Promise containing the analysis result with theme choice and reason
+   */
+  analyzeResponses(responses: OnboardingResponse[]): Promise<ThemeAnalysisResult>;
+
+  /**
+   * Gets information about a specific theme by its ID.
+   * @param themeId Theme ID (1-5)
+   * @returns Theme information including name, characteristics, and description
+   */
+  getThemeInfo(themeId: number): {
+    name: string;
+    characteristics: string[];
+    description: string;
+  };
+}
+
 export {
   TextGeneratorInterface,
   ImageGeneratorInterface,
+  ThemeAnalyzerInterface,
   ImageGenerationResult,
   ImageOutput,
+  ThemeAnalysisResult,
+  OnboardingResponse,
 };

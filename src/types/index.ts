@@ -27,17 +27,14 @@ export interface Theme {
   weather: "sunny" | "raining" | "cloudy" | "snowing" | "night" | "sunset";
 }
 
-export interface OnboardingResponse {
-  question: string;
-  answer: string;
-}
+// OnboardingResponse is now defined in types/ai-services.ts
 
 export interface AIAnalysis {
   choice: number;
   reason: string;
   theme: string;
   analyzedAt: Date;
-  responses: OnboardingResponse[];
+  responses: any[]; // Using generic array to avoid circular dependency
 }
 
 export interface JWTPayload {
@@ -51,7 +48,7 @@ export interface UserPayload extends JWTPayload {
   invitation?: string;
   objectIds: any[];
   modifiedObjectIds: any[];
-  onboardingResponses?: OnboardingResponse[];
+  onboardingResponses?: any[]; // Using generic array to avoid circular dependency
   onboardingCompleted?: boolean;
   onboardingCompletedAt?: Date;
   aiAnalysis?: AIAnalysis;

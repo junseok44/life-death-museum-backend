@@ -1,8 +1,10 @@
 import {
   TextGeneratorInterface,
   ImageGeneratorInterface,
+  ThemeAnalyzerInterface,
 } from "../types/ai-services";
-import { MockTextGenerator, MockImageGenerator } from "./mock-ai-services";
+import { MockTextGenerator, MockImageGenerator, MockThemeAnalyzer } from "./mock-ai-services";
+import { OpenAIThemeAnalyzer } from "./openai-theme-analyzer";
 
 // TODO: When replacing with actual implementation, change the imports below and modify the instance initialization.
 // Example:
@@ -26,3 +28,15 @@ export const textGenerator: TextGeneratorInterface = new MockTextGenerator();
  * 2. Replace imageGenerator below with the actual implementation instance
  */
 export const imageGenerator: ImageGeneratorInterface = new MockImageGenerator();
+
+/**
+ * Theme analysis service instance
+ *
+ * Automatically chooses between OpenAI and Mock implementation based on API key availability
+ */
+export const themeAnalyzer: ThemeAnalyzerInterface = process.env.OPENAI_API_KEY 
+  ? new OpenAIThemeAnalyzer(process.env.OPENAI_API_KEY)
+  : (() => {
+      console.warn('⚠️  OpenAI API key not found. Using mock theme analysis mode.');
+      return new MockThemeAnalyzer();
+    })();

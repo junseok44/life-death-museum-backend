@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { authenticateJWT } from '../middleware/auth';
-import { ArtiAIService, AIAnalysisResult } from '../services/arti-ai-service';
+import { themeAnalyzer } from '../services/ai-services';
 import { User } from '../models/UserModel';
-import { OnboardingResponse } from '../types';
+import { OnboardingResponse, ThemeAnalysisResult } from '../types/ai-services';
 
 const themeOnboardingRouter = Router();
 
@@ -52,10 +52,10 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
     }
 
     // Call AI service for analysis
-    const analysisResult: AIAnalysisResult = await ArtiAIService.analyzeOnboardingResponses(responses);
+    const analysisResult: ThemeAnalysisResult = await themeAnalyzer.analyzeResponses(responses);
 
     // Get theme information
-    const themeInfo = ArtiAIService.getThemeInfo(analysisResult.choice);
+    const themeInfo = themeAnalyzer.getThemeInfo(analysisResult.choice);
 
     console.log('✅ AI Analysis completed:', {
       choice: analysisResult.choice,

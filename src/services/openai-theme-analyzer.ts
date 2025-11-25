@@ -1,26 +1,19 @@
 import OpenAI from 'openai';
-import { OnboardingResponse } from '../types/ai-services';
+import {
+  ThemeAnalyzerInterface,
+  ThemeAnalysisResult,
+  OnboardingResponse,
+} from '../types/ai-services';
 
-// Initialize OpenAI client only if API key is available
-let openai: OpenAI | null = null;
+/**
+ * 🤖 OpenAI implementation of ThemeAnalyzerInterface.
+ * Uses GPT-3.5-turbo to analyze user responses and recommend memorial themes.
+ */
+export class OpenAIThemeAnalyzer implements ThemeAnalyzerInterface {
+  private openai: OpenAI;
 
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  console.log('🤖 OpenAI client initialized');
-} else {
-  console.warn('⚠️  OpenAI API key not found. Using fallback analysis mode.');
-}
-
-// Interface for AI analysis result
-export interface AIAnalysisResult {
-  choice: number;
-  reason: string;
-}
-
-// System prompt from textPrompts.txt
-const SYSTEM_PROMPT = `# Role
+  // System prompt for OpenAI analysis
+  private readonly SYSTEM_PROMPT = `# Role
 당신은 유저의 성향과 가치관을 분석하여 가장 적합한 추모 공간을 추천해주는 '공간 심리 분석가'입니다.
 
 # Task
@@ -55,21 +48,18 @@ const SYSTEM_PROMPT = `# Role
 - [유저 성향 요약] 부분은 유저의 답변 내용을 바탕으로 20자 이내의 따뜻한 어조로 작성하세요.
 - 예시: "따뜻한 가족애를 간직한 당신에게는, 이 테마가 잘 어울릴 것 같아요."`;
 
-export class ArtiAIService {
-  /**
-   * Analyze user onboarding responses and recommend a memorial theme
-   */
-  static async analyzeOnboardingResponses(responses: OnboardingResponse[]): Promise<AIAnalysisResult> {
+  constructor(apiKey: string) {
+    this.openai = new OpenAI({
+      apiKey: apiKey,
+    });
+    console.log('🤖 OpenAI Theme Analyzer initialized');
+  }
+
+  async analyzeResponses(responses: OnboardingResponse[]): Promise<ThemeAnalysisResult> {
     try {
       // Validate input
       if (!responses || responses.length !== 5) {
         throw new Error('Exactly 5 onboarding responses are required');
-      }
-
-      // Check if OpenAI API key is available
-      if (!process.env.OPENAI_API_KEY || !openai) {
-        console.warn('OpenAI API key not found, using fallback analysis');
-        return this.fallbackAnalysis(responses);
       }
 
       // Format user responses for the prompt
@@ -79,16 +69,15 @@ export class ArtiAIService {
 
       const userPrompt = `[유저의 응답]\n${userResponsesText}`;
 
-      console.log('🤖 Sending to OpenAI for analysis...');
-      console.log('User responses:', userResponsesText);
+      console.log('🤖 Sending to OpenAI for theme analysis...');
 
       // Call OpenAI API
-      const completion = await openai.chat.completions.create({
+      const completion = await this.openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: SYSTEM_PROMPT
+            content: this.SYSTEM_PROMPT
           },
           {
             role: "user",
@@ -106,10 +95,10 @@ export class ArtiAIService {
         throw new Error('No response from OpenAI');
       }
 
-      console.log('🤖 OpenAI Response:', responseText);
+      console.log('🤖 OpenAI Theme Analysis Response:', responseText);
 
       // Parse the JSON response
-      const analysisResult: AIAnalysisResult = JSON.parse(responseText);
+      const analysisResult: ThemeAnalysisResult = JSON.parse(responseText);
 
       // Validate the response structure
       if (!analysisResult.choice || !analysisResult.reason) {
@@ -124,81 +113,16 @@ export class ArtiAIService {
       return analysisResult;
 
     } catch (error) {
-      console.error('❌ AI Service Error:', error);
-      
-      // Fallback to rule-based analysis if OpenAI fails
-      console.log('🔄 Falling back to rule-based analysis');
-      return this.fallbackAnalysis(responses);
+      console.error('❌ OpenAI Theme Analysis Error:', error);
+      throw error;
     }
   }
 
-  /**
-   * Fallback analysis when OpenAI is not available 😂😂
-   */
-  private static fallbackAnalysis(responses: OnboardingResponse[]): AIAnalysisResult {
-    // Simple rule-based analysis based on keywords
-    const allAnswers = responses.map(r => r.answer.toLowerCase()).join(' ');
-    
-    // Theme scoring based on keywords
-    const themeScores = {
-      1: 0, // 동심파 - 순수함, 가족애, 따뜻함
-      2: 0, // 낭만파 - 감성, 예술, 사랑
-      3: 0, // 도시파 - 자립심, 열정, 세련됨
-      4: 0, // 자연파 - 자연, 소박함, 평온함
-      5: 0  // 기억파 - 추억, 그리움, 연결
-    };
-
-    // 동심파 keywords
-    if (allAnswers.includes('가족') || allAnswers.includes('따뜻') || allAnswers.includes('순수')) {
-      themeScores[1] += 2;
-    }
-
-    // 낭만파 keywords
-    if (allAnswers.includes('사랑') || allAnswers.includes('감성') || allAnswers.includes('예술')) {
-      themeScores[2] += 2;
-    }
-
-    // 도시파 keywords
-    if (allAnswers.includes('성공') || allAnswers.includes('열정') || allAnswers.includes('성장')) {
-      themeScores[3] += 2;
-    }
-
-    // 자연파 keywords
-    if (allAnswers.includes('자연') || allAnswers.includes('평화') || allAnswers.includes('단순')) {
-      themeScores[4] += 2;
-    }
-
-    // 기억파 keywords
-    if (allAnswers.includes('추억') || allAnswers.includes('기억') || allAnswers.includes('그리움')) {
-      themeScores[5] += 2;
-    }
-
-    // Find the theme with highest score
-    const bestTheme = Object.entries(themeScores).reduce((a, b) => 
-      themeScores[parseInt(a[0]) as keyof typeof themeScores] > themeScores[parseInt(b[0]) as keyof typeof themeScores] ? a : b
-    )[0];
-
-    const choice = parseInt(bestTheme);
-    
-    // Generate appropriate reason based on theme
-    const reasons = {
-      1: "따뜻한 마음을 간직한 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
-      2: "감성이 풍부한 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
-      3: "열정적이고 진취적인 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
-      4: "평온함을 추구하는 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
-      5: "소중한 추억을 간직한 당신에게는, 이 테마가 잘 어울릴 것 같아요."
-    };
-
-    return {
-      choice,
-      reason: reasons[choice as keyof typeof reasons]
-    };
-  }
-
-  /**
-   * Get theme information by choice number
-   */
-  static getThemeInfo(choice: number): { name: string; characteristics: string[]; description: string } {
+  getThemeInfo(themeId: number): { 
+    name: string; 
+    characteristics: string[]; 
+    description: string; 
+  } {
     const themes = {
       1: {
         name: "동심파",
@@ -227,8 +151,6 @@ export class ArtiAIService {
       }
     };
 
-    return themes[choice as keyof typeof themes] || themes[1];
+    return themes[themeId as keyof typeof themes] || themes[1];
   }
 }
-
-export default ArtiAIService;

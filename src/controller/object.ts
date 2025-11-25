@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { ImageObject } from "../models/ObjectModel";
+import { ImageObject, ImageSet } from "../models/ObjectModel";
 import { User } from "../models/UserModel";
 import { authenticateJWT, authenticateAdmin } from "../middleware/auth";
 import { validate } from "../middleware/validation";
@@ -266,7 +266,7 @@ objectRouter.patch(
       const params: UpdateObjectParams = req.params as UpdateObjectParams;
       const { objectId } = params;
       const body: UpdateObjectBody = req.body;
-      const { name, imageSrc, description, onType, imageSets } = body;
+      const { name, currentImageSetId, description, onType, imageSets } = body;
 
       // Find the object
       const object = await ImageObject.findById(objectId);
@@ -288,13 +288,24 @@ objectRouter.patch(
       // Update fields
       const updateData: {
         name?: string;
-        imageSrc?: string;
+        currentImageSet?: ImageSet;
         description?: string;
         onType?: "LeftWall" | "RightWall" | "Floor";
-        imageSets?: Array<{ name: string; color: string; src: string }>;
+        imageSets?: ImageSet[];
       } = {};
       if (name !== undefined) updateData.name = name.trim();
-      if (imageSrc !== undefined) updateData.imageSrc = imageSrc.trim();
+      if (currentImageSetId !== undefined) {
+        const currentImageSet = object.imageSets.find(
+          (set) => set._id?.toString() === currentImageSetId
+        );
+
+        if (!currentImageSet) {
+          return res.status(404).json({
+            message: "Current image set not found",
+          });
+        }
+        updateData.currentImageSet = currentImageSet;
+      }
       if (description !== undefined)
         updateData.description = description?.trim();
       if (onType !== undefined) updateData.onType = onType;

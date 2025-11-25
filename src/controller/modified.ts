@@ -22,7 +22,7 @@ modifiedRouter.post(
       const body: CreateModifiedBody = req.body;
       const {
         name,
-        imageSrc,
+        currentImageSetId,
         originalObjectId,
         itemFunction,
         coordinates,
@@ -36,7 +36,7 @@ modifiedRouter.post(
       const modified = await ModifiedService.createModified(
         {
           name,
-          imageSrc,
+          currentImageSetId,
           originalObjectId,
           itemFunction,
           coordinates,
@@ -74,7 +74,7 @@ modifiedRouter.patch(
         itemFunction,
         additionalData,
         coordinates,
-        imageSrc,
+        currentImageSetId,
         isReversed,
       } = body;
 
@@ -87,7 +87,7 @@ modifiedRouter.patch(
           itemFunction,
           additionalData,
           coordinates,
-          imageSrc,
+          currentImageSetId,
           isReversed,
         },
         userId

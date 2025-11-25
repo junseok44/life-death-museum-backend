@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { z } from "zod";
 
 // POST /object/followup 스키마
@@ -51,7 +52,15 @@ export const updateObjectSchema = z.object({
   }),
   body: z.object({
     name: z.string().min(1).trim().optional(),
-    imageSrc: z.string().trim().optional(),
+    currentImageSetId: z
+      .string()
+      .refine(
+        (currentImageSet) => mongoose.Types.ObjectId.isValid(currentImageSet),
+        {
+          message: "currentImageSet is not a valid ObjectId",
+        }
+      )
+      .optional(),
     description: z.string().optional(),
     onType: z.enum(["LeftWall", "RightWall", "Floor"]).optional(),
     imageSets: z

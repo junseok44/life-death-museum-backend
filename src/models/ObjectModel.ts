@@ -1,16 +1,17 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Document, Model, ObjectId } from "mongoose";
 
 export interface ImageSet {
-    name: string;
-    color: string;
-    src: string;
+  name: string;
+  color: string;
+  src: string;
+  _id?: ObjectId;
 }
 
 // Object interface
 // Object is already defined in TS global scope, so we use ImageObject
 export interface ImageObject extends Document {
   name: string;
-  imageSrc: string;
+  currentImageSet: ImageSet;
   description?: string;
   imageSets: ImageSet[];
   isUserMade: boolean;
@@ -29,10 +30,14 @@ export const ImageObjectSchema: Schema = new Schema(
       type: String,
       trim: true,
     },
-    imageSrc: {
-      type: String,
+    currentImageSet: {
+      type: {
+        name: { type: String, required: true, trim: true },
+        color: { type: String, required: true, trim: true },
+        src: { type: String, required: true, trim: true },
+      },
+      _id: false,
       required: true,
-      trim: true,
     },
     imageSets: [
       {
@@ -62,4 +67,3 @@ export const ImageObject: Model<ImageObject> = mongoose.model<ImageObject>(
   "ImageObject",
   ImageObjectSchema
 );
-

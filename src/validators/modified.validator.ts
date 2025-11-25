@@ -8,9 +8,14 @@ export const createModifiedSchema = z.object({
       .string()
       .min(1, "name field is required and must be a non-empty string")
       .trim(),
-    imageSrc: z
+    currentImageSetId: z
       .string()
-      .min(1, "imageSrc field is required and must be a string"),
+      .refine(
+        (currentImageSet) => mongoose.Types.ObjectId.isValid(currentImageSet),
+        {
+          message: "currentImageSetId is not a valid ObjectId",
+        }
+      ),
     itemFunction: z.union([z.enum(["Gallery", "Link", "Board"]), z.null()]),
     coordinates: z.object({
       x: z.number({
@@ -57,16 +62,20 @@ export const updateModifiedSchema = z.object({
           }),
         })
         .optional(),
-      imageSrc: z.string().optional(),
-      imageSets: z.any().optional(), // 업데이트 불가 (별도 검증)
+      currentImageSetId: z
+        .string()
+        .refine(
+          (currentImageSetId) =>
+            mongoose.Types.ObjectId.isValid(currentImageSetId),
+          {
+            message: "currentImageSetId is not a valid ObjectId",
+          }
+        )
+        .optional(),
       isReversed: z.boolean().optional(),
     })
     .refine((data) => Object.keys(data).length > 0, {
       message: "Request body cannot be empty",
-    })
-    .refine((data) => data.imageSets === undefined, {
-      message:
-        "imageSets cannot be updated. Please create a new modified object instead.",
     }),
 });
 

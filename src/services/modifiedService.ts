@@ -4,7 +4,7 @@ import { User } from "../models/UserModel";
 
 export interface CreateModifiedParams {
   name: string;
-  imageSrc: string;
+  currentImageSetId: string;
   itemFunction: "Gallery" | "Link" | "Board" | null;
   coordinates: {
     x: number;
@@ -19,13 +19,13 @@ export interface CreateModifiedParams {
 export interface UpdateModifiedParams {
   name?: string;
   description?: string;
+  currentImageSetId?: string;
   itemFunction?: "Gallery" | "Link" | "Board" | null;
   additionalData?: unknown;
   coordinates?: {
     x: number;
     y: number;
   };
-  imageSrc?: string;
   imageSets?: ImageSet[];
   isReversed?: boolean;
 }
@@ -44,7 +44,7 @@ export class ModifiedService {
   ): Promise<ModifiedObject> {
     const {
       name,
-      imageSrc,
+      currentImageSetId,
       itemFunction,
       coordinates,
       description,
@@ -64,6 +64,16 @@ export class ModifiedService {
       throw new Error("Original object has no imageSets");
     }
 
+    const currentImageSet = originalObject.imageSets.find(
+      (set) => set._id?.toString() === currentImageSetId
+    );
+
+    if (!currentImageSet) {
+      throw new Error("Current image set not found");
+    }
+
+    const { _id, ...currentImageSetWithoutId } = currentImageSet;
+
     const originalImageSetsWithoutId = originalObject.imageSets.map((set) => ({
       name: set.name,
       color: set.color,
@@ -73,7 +83,7 @@ export class ModifiedService {
     // Create new modified object
     const newModified = new ModifiedObjectModel({
       name: name.trim(),
-      imageSrc,
+      currentImageSet: currentImageSetWithoutId,
       description: description?.trim(),
       itemFunction: itemFunction ?? null,
       coordinates,
@@ -139,8 +149,14 @@ export class ModifiedService {
     if (params.coordinates !== undefined) {
       modified.coordinates = params.coordinates;
     }
-    if (params.imageSrc !== undefined) {
-      modified.imageSrc = params.imageSrc;
+    if (params.currentImageSetId !== undefined) {
+      const currentImageSet = modified.imageSets.find(
+        (set) => set._id?.toString() === params.currentImageSetId
+      );
+      if (!currentImageSet) {
+        throw new Error("Current image set not found");
+      }
+      modified.currentImageSet = currentImageSet;
     }
     if (params.isReversed !== undefined) {
       modified.isReversed = params.isReversed;

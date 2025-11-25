@@ -59,7 +59,8 @@ export const updateObjectSchema = z.object({
         {
           message: "currentImageSet is not a valid ObjectId",
         }
-      ),
+      )
+      .optional(),
     description: z.string().optional(),
     onType: z.enum(["LeftWall", "RightWall", "Floor"]).optional(),
     imageSets: z

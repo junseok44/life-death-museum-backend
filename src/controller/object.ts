@@ -285,22 +285,6 @@ objectRouter.patch(
         });
       }
 
-      const currentBasicObject = await ImageObject.findById(objectId);
-      if (!currentBasicObject) {
-        return res.status(404).json({
-          message: "Current basic object not found",
-        });
-      }
-
-      const currentImageSet = currentBasicObject.imageSets.find(
-        (set) => set._id?.toString() === currentImageSetId
-      );
-
-      if (!currentImageSet) {
-        return res.status(404).json({
-          message: "Current image set not found",
-        });
-      }
       // Update fields
       const updateData: {
         name?: string;
@@ -310,8 +294,18 @@ objectRouter.patch(
         imageSets?: ImageSet[];
       } = {};
       if (name !== undefined) updateData.name = name.trim();
-      if (currentImageSet !== undefined)
+      if (currentImageSetId !== undefined) {
+        const currentImageSet = object.imageSets.find(
+          (set) => set._id?.toString() === currentImageSetId
+        );
+
+        if (!currentImageSet) {
+          return res.status(404).json({
+            message: "Current image set not found",
+          });
+        }
         updateData.currentImageSet = currentImageSet;
+      }
       if (description !== undefined)
         updateData.description = description?.trim();
       if (onType !== undefined) updateData.onType = onType;

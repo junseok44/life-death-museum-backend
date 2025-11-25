@@ -23,11 +23,12 @@ modifiedRouter.post(
       const {
         name,
         imageSrc,
+        originalObjectId,
         itemFunction,
         coordinates,
-        imageSets,
         description,
         isReversed,
+        additionalData,
       } = body;
       const userId = req.user!.id;
 
@@ -36,11 +37,12 @@ modifiedRouter.post(
         {
           name,
           imageSrc,
+          originalObjectId,
           itemFunction,
           coordinates,
-          imageSets,
           description,
           isReversed,
+          additionalData,
         },
         userId
       );

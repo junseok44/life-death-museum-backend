@@ -1,20 +1,5 @@
+import mongoose from "mongoose";
 import { z } from "zod";
-
-// ImageSet 스키마
-const imageSetSchema = z.object({
-  name: z
-    .string()
-    .min(1, "name is required and must be a non-empty string")
-    .trim(),
-  color: z
-    .string()
-    .min(1, "color is required and must be a non-empty string")
-    .trim(),
-  src: z
-    .string()
-    .min(1, "src is required and must be a non-empty string")
-    .trim(),
-});
 
 // POST /modified 스키마
 export const createModifiedSchema = z.object({
@@ -35,11 +20,19 @@ export const createModifiedSchema = z.object({
         message: "coordinates.y is required and must be a number",
       }),
     }),
-    imageSets: z
-      .array(imageSetSchema)
-      .min(1, "imageSets must be a non-empty array"),
+    originalObjectId: z
+      .string({
+        message: "originalObjectId is required and must be a string",
+      })
+      .refine(
+        (originalObjectId) => mongoose.Types.ObjectId.isValid(originalObjectId),
+        {
+          message: "originalObjectId is not a valid ObjectId",
+        }
+      ),
     description: z.string().optional(),
     isReversed: z.boolean().optional(),
+    additionalData: z.any().optional(),
   }),
 });
 

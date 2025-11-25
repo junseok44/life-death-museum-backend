@@ -1,5 +1,5 @@
 import { ModifiedObject, ModifiedObjectModel } from "../models/ModifiedObject";
-import { ImageSet } from "../models/ObjectModel";
+import { ImageObject, ImageSet } from "../models/ObjectModel";
 import { User } from "../models/UserModel";
 
 export interface CreateModifiedParams {
@@ -10,9 +10,10 @@ export interface CreateModifiedParams {
     x: number;
     y: number;
   };
-  imageSets?: ImageSet[];
+  originalObjectId: string;
   description?: string;
   isReversed?: boolean;
+  additionalData?: unknown;
 }
 
 export interface UpdateModifiedParams {
@@ -46,10 +47,28 @@ export class ModifiedService {
       imageSrc,
       itemFunction,
       coordinates,
-      imageSets,
       description,
       isReversed,
+      originalObjectId,
+      additionalData,
     } = params;
+
+    const originalObject = await ImageObject.findById(originalObjectId).exec();
+
+    if (!originalObject) {
+      throw new Error("Original object not found");
+    }
+
+    // imageSets 검증 및 _id 제거
+    if (!originalObject.imageSets || originalObject.imageSets.length === 0) {
+      throw new Error("Original object has no imageSets");
+    }
+
+    const originalImageSetsWithoutId = originalObject.imageSets.map((set) => ({
+      name: set.name,
+      color: set.color,
+      src: set.src,
+    }));
 
     // Create new modified object
     const newModified = new ModifiedObjectModel({
@@ -58,16 +77,11 @@ export class ModifiedService {
       description: description?.trim(),
       itemFunction: itemFunction ?? null,
       coordinates,
-      imageSets: imageSets
-        ? imageSets.map((set) => ({
-            name: set.name.trim(),
-            color: set.color.trim(),
-            src: set.src.trim(),
-          }))
-        : [],
       isReversed: isReversed ?? false,
-      isUserMade: true, // Modified objects are always user-made
-      onType: "Floor", // Default, can be changed if needed
+      isUserMade: originalObject.isUserMade,
+      onType: originalObject.onType,
+      imageSets: originalImageSetsWithoutId,
+      additionalData: additionalData ?? {},
     });
 
     const savedModified = await newModified.save();

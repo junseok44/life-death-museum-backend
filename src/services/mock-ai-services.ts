@@ -23,11 +23,46 @@ export class MockTextGenerator implements TextGeneratorInterface {
 
     const model = options?.model || "mock-model";
     const temperature = options?.temperature ?? 0.7;
+    const responseFormat = options?.response_format;
 
+    // If JSON format is requested, check if this is a theme analysis request
+    if (responseFormat?.type === 'json_object' && prompt.includes('유저의 응답')) {
+      // Simple rule-based theme analysis for mock
+      const themeScores = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      const lowerPrompt = prompt.toLowerCase();
+      
+      if (lowerPrompt.includes('가족') || lowerPrompt.includes('따뜻')) themeScores[1] += 2;
+      if (lowerPrompt.includes('사랑') || lowerPrompt.includes('감성')) themeScores[2] += 2;
+      if (lowerPrompt.includes('성공') || lowerPrompt.includes('열정')) themeScores[3] += 2;
+      if (lowerPrompt.includes('자연') || lowerPrompt.includes('평화')) themeScores[4] += 2;
+      if (lowerPrompt.includes('추억') || lowerPrompt.includes('기억')) themeScores[5] += 2;
+      
+      const bestTheme = Object.entries(themeScores).reduce((a, b) => 
+        themeScores[parseInt(a[0]) as keyof typeof themeScores] > themeScores[parseInt(b[0]) as keyof typeof themeScores] ? a : b
+      )[0];
+      
+      const choice = parseInt(bestTheme);
+      const reasons = {
+        1: "따뜻한 마음을 간직한 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
+        2: "감성이 풍부한 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
+        3: "열정적이고 진취적인 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
+        4: "평온함을 추구하는 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
+        5: "소중한 추억을 간직한 당신에게는, 이 테마가 잘 어울릴 것 같아요."
+      };
+      
+      console.log('🧪 Mock Text Generator - Theme Analysis:', { choice });
+      
+      return JSON.stringify({
+        choice,
+        reason: reasons[choice as keyof typeof reasons]
+      });
+    }
+
+    // Default mock text generation
     return `[Mock Text Generation]
 모델: ${model}
 Temperature: ${temperature}
-프롬프트: "${prompt}"
+프롬프트: "${prompt.substring(0, 50)}..."
 
 이것은 mock 응답입니다. 실제 AI 서비스로 교체하면 실제 생성된 텍스트가 반환됩니다.
 {

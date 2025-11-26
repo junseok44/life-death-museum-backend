@@ -59,7 +59,7 @@ export class ObjectService {
     content: string,
     userId: string
   ): Promise<CreateObjectResult> {
-    // Generate object metadata (name, description, onType) together
+    // Generate object metadata (name, color, description, onType, visual_prompt) together
     const metadataPrompt = ObjectPrompts.generateObjectMetadata(content);
     const metadataText = await textGenerator.generateText(metadataPrompt, {
       temperature: 0.7,
@@ -68,27 +68,27 @@ export class ObjectService {
     // Parse JSON response using ResponseParser
     const metadata = ResponseParser.parseJSON(metadataText) as {
       name: string;
+      color: string;
       description: string;
       onType: "Wall" | "Floor";
+      visual_prompt: string;
     };
 
     if (
       !metadata ||
       !metadata.name ||
+      !metadata.color ||
       !metadata.description ||
-      !metadata.onType
+      !metadata.onType ||
+      !metadata.visual_prompt
     ) {
       throw new Error("Failed to parse object metadata from AI response");
     }
 
-    const { name, description, onType } = metadata;
-    // Generate image prompt using metadata
-    const imagePrompt = ObjectPrompts.generateImagePrompt(
-      content,
-      name,
-      description,
-      onType
-    );
+    const { name, color, description, onType, visual_prompt } = metadata;
+
+    // Generate image prompt using visual_prompt
+    const imagePrompt = ObjectPrompts.generateImagePrompt(visual_prompt);
 
     // Generate image
     const imageResult = await imageGenerator.generateImage(imagePrompt.trim(), {
@@ -114,10 +114,11 @@ export class ObjectService {
     );
 
     // Generate image sets (variations) - for now, create a single default set
+    // Use color from metadata
     const imageSets = [
       {
         name: "Default",
-        color: "#ffffff",
+        color: color,
         src: imageUrl,
       },
     ];

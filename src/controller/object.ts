@@ -185,7 +185,7 @@ objectRouter.get(
 // Expects multipart/form-data with:
 // - name: string
 // - description: string (optional)
-// - onType: "LeftWall" | "RightWall" | "Floor"
+// - onType: "Wall" | "Floor"
 // - imageSets[0][name]: string
 // - imageSets[0][color]: string
 // - imageSets[0][file]: File
@@ -342,7 +342,7 @@ objectRouter.patch(
         name?: string;
         currentImageSet?: ImageSet;
         description?: string;
-        onType?: "LeftWall" | "RightWall" | "Floor";
+        onType?: "Wall" | "Floor";
         imageSets?: ImageSet[];
       } = {};
       if (name !== undefined) updateData.name = name.trim();

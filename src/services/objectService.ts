@@ -25,7 +25,7 @@ export interface ImageSetInput {
 export interface CreatePresetObjectParams {
   name: string;
   description?: string;
-  onType: "LeftWall" | "RightWall" | "Floor";
+  onType: "Wall" | "Floor";
   imageSets: ImageSetInput[];
 }
 
@@ -69,7 +69,7 @@ export class ObjectService {
     const metadata = ResponseParser.parseJSON(metadataText) as {
       name: string;
       description: string;
-      onType: "LeftWall" | "RightWall" | "Floor";
+      onType: "Wall" | "Floor";
     };
 
     if (

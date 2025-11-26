@@ -29,8 +29,8 @@ export const createBasicObjectSchema = z.object({
     .object({
       name: z.string().min(1, "name is required").trim(),
       description: z.string().optional(),
-      onType: z.enum(["LeftWall", "RightWall", "Floor"], {
-        message: "onType must be one of: LeftWall, RightWall, Floor",
+      onType: z.enum(["Wall", "Floor"], {
+        message: "onType must be one of: Wall, Floor",
       }),
       imageSets: z
         .array(
@@ -74,7 +74,7 @@ export const updateObjectSchema = z.object({
       )
       .optional(),
     description: z.string().optional(),
-    onType: z.enum(["LeftWall", "RightWall", "Floor"]).optional(),
+    onType: z.enum(["Wall", "Floor"]).optional(),
     imageSets: z
       .array(
         z.object({

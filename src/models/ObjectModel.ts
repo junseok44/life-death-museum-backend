@@ -15,7 +15,7 @@ export interface ImageObject extends Document {
   description?: string;
   imageSets: ImageSet[];
   isUserMade: boolean;
-  onType: "LeftWall" | "RightWall" | "Floor";
+  onType: "Wall" | "Floor";
 }
 
 // Object schema
@@ -53,7 +53,7 @@ export const ImageObjectSchema: Schema = new Schema(
     },
     onType: {
       type: String,
-      enum: ["LeftWall", "RightWall", "Floor"],
+      enum: ["Wall", "Floor"],
       required: true,
     },
   },

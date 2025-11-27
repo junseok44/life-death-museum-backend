@@ -94,7 +94,7 @@ ${visualPrompt}
 
 # View & Orientation
 
-Isometric view, facing left.
+Isometric view, facing right.
 
 Isolated on a pure white background. 
 

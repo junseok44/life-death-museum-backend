@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { ImageObject, ImageSet } from "../models/ObjectModel";
+import { ImageObject, ImageSet, OnType } from "../models/ObjectModel";
 import { User } from "../models/UserModel";
 import { authenticateJWT, authenticateAdmin } from "../middleware/auth";
 import { validate } from "../middleware/validation";
@@ -185,7 +185,7 @@ objectRouter.get(
 // Expects multipart/form-data with:
 // - name: string
 // - description: string (optional)
-// - onType: "Wall" | "Floor"
+// - onType: OnType (LeftWall | RightWall | Floor)
 // - imageSets[0][name]: string
 // - imageSets[0][color]: string
 // - imageSets[0][file]: File
@@ -342,7 +342,7 @@ objectRouter.patch(
         name?: string;
         currentImageSet?: ImageSet;
         description?: string;
-        onType?: "Wall" | "Floor";
+        onType?: OnType;
         imageSets?: ImageSet[];
       } = {};
       if (name !== undefined) updateData.name = name.trim();

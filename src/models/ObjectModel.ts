@@ -1,5 +1,11 @@
 import mongoose, { Schema, Document, Model, ObjectId } from "mongoose";
 
+export enum OnType {
+  LeftWall = "LeftWall",
+  RightWall = "RightWall",
+  Floor = "Floor",
+}
+
 export interface ImageSet {
   name: string;
   color: string;
@@ -15,7 +21,7 @@ export interface ImageObject extends Document {
   description?: string;
   imageSets: ImageSet[];
   isUserMade: boolean;
-  onType: "Wall" | "Floor";
+  onType: OnType;
 }
 
 // Object schema
@@ -53,7 +59,7 @@ export const ImageObjectSchema: Schema = new Schema(
     },
     onType: {
       type: String,
-      enum: ["Wall", "Floor"],
+      enum: Object.values(OnType),
       required: true,
     },
   },

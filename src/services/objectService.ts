@@ -1,4 +1,4 @@
-import { ImageObject } from "../models/ObjectModel";
+import { ImageObject, OnType } from "../models/ObjectModel";
 import { User } from "../models/UserModel";
 import mongoose from "mongoose";
 import { textGenerator, imageGenerator } from "./ai-services";
@@ -25,7 +25,7 @@ export interface ImageSetInput {
 export interface CreatePresetObjectParams {
   name: string;
   description?: string;
-  onType: "Wall" | "Floor";
+  onType: OnType;
   imageSets: ImageSetInput[];
 }
 
@@ -70,7 +70,7 @@ export class ObjectService {
       name: string;
       color: string;
       description: string;
-      onType: "Wall" | "Floor";
+      onType: string;
       visual_prompt: string;
     };
 
@@ -130,7 +130,7 @@ export class ObjectService {
       currentImageSet: imageSets[0],
       imageSets,
       isUserMade: true,
-      onType,
+      onType: onType,
     });
 
     const savedObject = await newObject.save();

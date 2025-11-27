@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { z } from "zod";
+import { OnType } from "../models/ObjectModel";
 
 // POST /modified 스키마
 export const createModifiedSchema = z.object({
@@ -35,6 +36,7 @@ export const createModifiedSchema = z.object({
           message: "originalObjectId is not a valid ObjectId",
         }
       ),
+    onType: z.enum(OnType),
     description: z.string().optional(),
     isReversed: z.boolean().optional(),
     additionalData: z.any().optional(),
@@ -51,6 +53,7 @@ export const updateModifiedSchema = z.object({
       name: z.string().min(1).trim().optional(),
       description: z.string().optional(),
       itemFunction: z.enum(["Gallery", "Link", "Board"]).nullable().optional(),
+      onType: z.enum(OnType).optional(),
       additionalData: z.any().optional(),
       coordinates: z
         .object({

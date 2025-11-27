@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { z } from "zod";
+import { OnType } from "../models/ObjectModel";
 
 // POST /object/followup 스키마
 export const followupQuestionSchema = z.object({
@@ -29,9 +30,7 @@ export const createBasicObjectSchema = z.object({
     .object({
       name: z.string().min(1, "name is required").trim(),
       description: z.string().optional(),
-      onType: z.enum(["Wall", "Floor"], {
-        message: "onType must be one of: Wall, Floor",
-      }),
+      onType: z.nativeEnum(OnType),
       imageSets: z
         .array(
           z.object({
@@ -74,7 +73,7 @@ export const updateObjectSchema = z.object({
       )
       .optional(),
     description: z.string().optional(),
-    onType: z.enum(["Wall", "Floor"]).optional(),
+    onType: z.nativeEnum(OnType).optional(),
     imageSets: z
       .array(
         z.object({

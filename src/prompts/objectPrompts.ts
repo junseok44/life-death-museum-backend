@@ -36,7 +36,7 @@ ${content}
 
   /**
    * Generate object metadata including name, color, description, onType, and visual_prompt
-   * Returns JSON format: { name: string, color: string, description: string, onType: "WALL" | "FLOOR", visual_prompt: string }
+   * Returns JSON format: { name: string, color: string, description: string, onType: "LeftWall" | "RightWall" | "Floor" (OnType enum), visual_prompt: string }
    */
   generateObjectMetadata: (content: string): string => {
     return `# Role
@@ -55,7 +55,7 @@ ${content}
 
 3. **description**: 유저에게 이 물건이 어떤 의미인지 100자 이내의 한국어로 감성적으로 서술.
 
-4. **onType**: 물건의 특성에 따라 반드시 "WALL"(액자, 시계 등 벽걸이) 또는 "FLOOR"(가구, 화분 등 바닥형) 중 하나만 선택.
+4. **onType**: 물건의 특성에 따라 반드시 "LeftWall"(왼쪽 벽에 걸리는 액자, 시계 등), "Floor"(가구, 화분 등 바닥형) 중 하나만 선택.
 
 5. **visual_prompt**: **중요** DALL-E 등의 이미지 생성 AI에게 보낼 '오브젝트 묘사' 프롬프트를 영어로 작성. (배경 없이, 물건의 생김새, 색상, 재질 위주로 묘사)
 

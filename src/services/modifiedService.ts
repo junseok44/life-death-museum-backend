@@ -1,5 +1,5 @@
 import { ModifiedObject, ModifiedObjectModel } from "../models/ModifiedObject";
-import { ImageObject, ImageSet } from "../models/ObjectModel";
+import { ImageObject, ImageSet, OnType } from "../models/ObjectModel";
 import { User } from "../models/UserModel";
 
 export interface CreateModifiedParams {
@@ -11,6 +11,7 @@ export interface CreateModifiedParams {
     y: number;
   };
   originalObjectId: string;
+  onType: OnType;
   description?: string;
   isReversed?: boolean;
   additionalData?: unknown;
@@ -21,6 +22,7 @@ export interface UpdateModifiedParams {
   description?: string;
   currentImageSetId?: string;
   itemFunction?: "Gallery" | "Link" | "Board" | null;
+  onType?: OnType;
   additionalData?: unknown;
   coordinates?: {
     x: number;
@@ -50,6 +52,7 @@ export class ModifiedService {
       description,
       isReversed,
       originalObjectId,
+      onType,
       additionalData,
     } = params;
 
@@ -89,7 +92,7 @@ export class ModifiedService {
       coordinates,
       isReversed: isReversed ?? false,
       isUserMade: originalObject.isUserMade,
-      onType: originalObject.onType,
+      onType: onType,
       imageSets: originalImageSetsWithoutId,
       additionalData: additionalData ?? {},
     });
@@ -142,6 +145,9 @@ export class ModifiedService {
     }
     if (params.itemFunction !== undefined) {
       modified.itemFunction = params.itemFunction ?? null;
+    }
+    if (params.onType !== undefined) {
+      modified.onType = params.onType;
     }
     if (params.additionalData !== undefined) {
       modified.additionalData = params.additionalData;

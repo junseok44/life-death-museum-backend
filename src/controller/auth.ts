@@ -51,7 +51,8 @@ signupRouter.post("/", async (req: Request<{}, {}, SignupBody>, res: Response) =
             password: hashedPassword,
             theme: {
                 floorColor: '#ffffff',
-                wallColor: '#ffffff',
+                leftWallColor: '#ffffff',
+                rightWallColor: '#000000',
                 weather: 'sunny'
             }
         });

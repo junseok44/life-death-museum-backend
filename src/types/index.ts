@@ -23,7 +23,8 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 // Auth related types
 export interface Theme {
   floorColor: string;
-  wallColor: string;
+  leftWallColor: string;
+  rightWallColor: string;
   weather: "sunny" | "raining" | "cloudy" | "snowing" | "night" | "sunset";
 }
 

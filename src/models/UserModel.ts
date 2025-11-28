@@ -1,10 +1,5 @@
 import mongoose, { Schema, Document, Model, ObjectId } from "mongoose";
-
-export interface Theme {
-  floorColor: string;
-  wallColor: string;
-  weather: "sunny" | "raining" | "cloudy" | "snowing" | "night" | "sunset";
-}
+import { Theme } from "../types";
 
 export interface User extends Document {
   _id: ObjectId;
@@ -37,7 +32,8 @@ const UserSchema: Schema = new Schema(
     },
     theme: {
       floorColor: { type: String, required: true },
-      wallColor: { type: String, required: true },
+      leftWallColor: { type: String, required: true },
+      rightWallColor: { type: String, required: true },
       weather: {
         type: String,
         enum: ["sunny", "raining", "cloudy", "snowing", "night", "sunset"],

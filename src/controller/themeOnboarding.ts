@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { authenticateJWT } from '../middleware/auth';
 import { themeAnalysisService, OnboardingResponse, ThemeAnalysisResult } from '../services/theme-analysis-service';
 import { User } from '../models/UserModel';
+import { createDefaultModifiedObject, hasValidDefaultObjectConfig } from '../services/theme-default-object.service';
+import mongoose from 'mongoose';
 
 
 const themeOnboardingRouter = Router();
@@ -63,6 +65,33 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
       reason: analysisResult.reason
     });
 
+    // Create and add default modified object for this theme
+    let defaultObjectId = null;
+    let defaultObjectWarning = null;
+
+    if (hasValidDefaultObjectConfig(analysisResult.choice)) {
+      const result = await createDefaultModifiedObject(analysisResult.choice, userId);
+      
+      if (result.success && result.modifiedObjectId) {
+        defaultObjectId = result.modifiedObjectId;
+        
+        // Add the default object to user's modifiedObjectIds
+        await User.findByIdAndUpdate(
+          userId,
+          { $addToSet: { modifiedObjectIds: defaultObjectId } },
+          { new: true }
+        );
+        
+        console.log(`✅ Added default object ${defaultObjectId} to user ${userId}`);
+      } else {
+        console.warn(`⚠️ Failed to create default object for theme ${analysisResult.choice}:`, result.error);
+        defaultObjectWarning = result.error;
+      }
+    } else {
+      console.log(`ℹ️ Theme ${analysisResult.choice} configuration not finalized yet - skipping default object`);
+      defaultObjectWarning = 'Theme configuration pending. Default object will be added when product team provides data.';
+    }
+
     return res.status(200).json({
       success: true,
       message: 'AI analysis completed successfully',
@@ -77,6 +106,13 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
           name: themeInfo.name,
           characteristics: themeInfo.characteristics,
           description: themeInfo.description
+        },
+        defaultObject: defaultObjectId ? {
+          id: defaultObjectId,
+          created: true
+        } : {
+          created: false,
+          reason: defaultObjectWarning
         },
         user: {
           id: userId

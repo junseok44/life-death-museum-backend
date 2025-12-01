@@ -6,6 +6,7 @@ import { ObjectPrompts } from "../prompts/objectPrompts";
 import { storage } from "./storage";
 import { ImageConverter } from "../utils/imageConverter";
 import { ResponseParser } from "../utils/responseParser";
+import { randomBytes } from "crypto";
 
 export interface CreateObjectResult {
   object: ImageObject;
@@ -105,8 +106,9 @@ export class ObjectService {
     // Convert image data (URL or base64) to Buffer
     const { buffer, mimeType } = await ImageConverter.toBuffer(imageData);
 
-    // Upload image to storage
-    const imagePath = `objects/${userId}/${Date.now()}.png`;
+    // Upload image to storage (랜덤 문자열로 고유성 보장)
+    const randomId = randomBytes(8).toString("hex"); // 16자리 hex 문자열
+    const imagePath = `objects/${userId}/${randomId}.png`;
     const imageUrl = await storage.uploadFromBuffer(
       buffer,
       imagePath,
@@ -188,11 +190,15 @@ export class ObjectService {
   ): Promise<ImageObject> {
     const { name, description, onType, imageSets } = params;
 
+    // 랜덤 문자열로 고유성 보장 (같은 오브젝트의 파일들은 공통 prefix 사용)
+    const randomPrefix = randomBytes(8).toString("hex"); // 16자리 hex 문자열
+
     // Upload all images to storage
     const uploadedImageSets = await Promise.all(
       imageSets.map(async (set, index) => {
         const fileExtension = set.file.originalname.split(".").pop() || "png";
-        const path = `presets/${Date.now()}-${index}-${set.name}.${fileExtension}`;
+        // 파일명: randomPrefix-index
+        const path = `presets/${randomPrefix}-${index}.${fileExtension}`;
         const url = await storage.uploadFromBuffer(
           set.file.buffer,
           path,

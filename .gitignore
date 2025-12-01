@@ -23,5 +23,6 @@ logs/
 *.log
 npm-debug.log*
 
+data/
 
 

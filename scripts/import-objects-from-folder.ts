@@ -4,6 +4,7 @@ dotenv.config();
 import * as fs from "fs";
 import * as path from "path";
 import mongoose from "mongoose";
+import { randomBytes } from "crypto";
 import { connectDatabase } from "../src/config/database";
 import { ImageObject, OnType } from "../src/models/ObjectModel";
 import { storage } from "../src/services/storage";
@@ -182,9 +183,12 @@ async function createObjectFromFolder(
   console.log(`   OnType: ${onType}`);
   console.log(`   Image files: ${imageFiles.length}`);
 
+  // 랜덤 문자열로 고유성 보장 (같은 오브젝트의 파일들은 공통 prefix 사용)
+  const randomPrefix = randomBytes(8).toString("hex"); // 16자리 hex 문자열
+
   // 각 이미지 파일 처리 및 업로드
   const imageSets = await Promise.all(
-    imageFiles.map(async (imageFile) => {
+    imageFiles.map(async (imageFile, index) => {
       const { name: imageSetName, color } = parseImageFileName(imageFile);
       const imagePath = path.join(folderPath, imageFile);
 
@@ -192,8 +196,8 @@ async function createObjectFromFolder(
       const fileBuffer = fs.readFileSync(imagePath);
       const mimeType = `image/${path.extname(imageFile).slice(1).toLowerCase()}`;
 
-      // Storage에 업로드
-      const uploadPath = `presets/${Date.now()}-${imageSetName}-${color}${path.extname(imageFile)}`;
+      // Storage에 업로드 (파일명: randomPrefix-index)
+      const uploadPath = `presets/${randomPrefix}-${index}${path.extname(imageFile)}`;
       const imageUrl = await storage.uploadFromBuffer(
         fileBuffer,
         uploadPath,
@@ -224,9 +228,7 @@ async function createObjectFromFolder(
   });
 
   const savedObject = await newObject.save();
-  console.log(
-    `   ✅ Created object: ${savedObject._id} (${savedObject.name})`
-  );
+  console.log(`   ✅ Created object: ${savedObject._id} (${savedObject.name})`);
 }
 
 /**
@@ -299,14 +301,18 @@ async function main() {
         });
       } catch (error) {
         console.error(`\n❌ Validation failed for folder "${folder}":`);
-        console.error(`   ${error instanceof Error ? error.message : String(error)}`);
+        console.error(
+          `   ${error instanceof Error ? error.message : String(error)}`
+        );
         throw new Error(
           `Validation failed. Please fix the errors above before proceeding.`
         );
       }
     }
 
-    console.log(`\n✅ All ${validatedFolders.length} folder(s) passed validation\n`);
+    console.log(
+      `\n✅ All ${validatedFolders.length} folder(s) passed validation\n`
+    );
 
     // 2단계: 검증 통과한 폴더들로 오브젝트 생성
     console.log("📝 Step 2: Creating objects...\n");
@@ -314,13 +320,19 @@ async function main() {
       try {
         await createObjectFromFolder(folderPath, folderName, validatedData);
       } catch (error) {
-        console.error(`\n❌ Error creating object from folder "${folderName}":`);
-        console.error(`   ${error instanceof Error ? error.message : String(error)}`);
+        console.error(
+          `\n❌ Error creating object from folder "${folderName}":`
+        );
+        console.error(
+          `   ${error instanceof Error ? error.message : String(error)}`
+        );
         throw error;
       }
     }
 
-    console.log(`\n✅ Successfully processed ${validatedFolders.length} folder(s)`);
+    console.log(
+      `\n✅ Successfully processed ${validatedFolders.length} folder(s)`
+    );
   } catch (error) {
     console.error("❌ Error:", error);
     process.exit(1);

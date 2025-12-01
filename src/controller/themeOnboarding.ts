@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authenticateJWT } from '../middleware/auth';
 import { themeAnalysisService, OnboardingResponse, ThemeAnalysisResult } from '../services/theme-analysis-service';
 import { User } from '../models/UserModel';
-import { createDefaultModifiedObject, hasValidDefaultObjectConfig } from '../services/theme-default-object.service';
+import { createDefaultModifiedObjects, hasValidDefaultObjectConfig } from '../services/theme-default-object.service';
 import mongoose from 'mongoose';
 
 
@@ -65,31 +65,31 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
       reason: analysisResult.reason
     });
 
-    // Create and add default modified object for this theme
-    let defaultObjectId = null;
+    // Create and add 2 default modified objects for this theme
+    let defaultObjectIds: any[] = [];
     let defaultObjectWarning = null;
 
     if (hasValidDefaultObjectConfig(analysisResult.choice)) {
-      const result = await createDefaultModifiedObject(analysisResult.choice, userId);
+      const result = await createDefaultModifiedObjects(analysisResult.choice, userId);
       
-      if (result.success && result.modifiedObjectId) {
-        defaultObjectId = result.modifiedObjectId;
+      if (result.success && result.modifiedObjectIds && result.modifiedObjectIds.length > 0) {
+        defaultObjectIds = result.modifiedObjectIds;
         
-        // Add the default object to user's modifiedObjectIds
+        // Add the default objects to user's modifiedObjectIds
         await User.findByIdAndUpdate(
           userId,
-          { $addToSet: { modifiedObjectIds: defaultObjectId } },
+          { $addToSet: { modifiedObjectIds: { $each: defaultObjectIds } } },
           { new: true }
         );
         
-        console.log(`✅ Added default object ${defaultObjectId} to user ${userId}`);
+        console.log(`✅ Added ${defaultObjectIds.length} default objects to user ${userId}`);
       } else {
-        console.warn(`⚠️ Failed to create default object for theme ${analysisResult.choice}:`, result.error);
+        console.warn(`⚠️ Failed to create default objects for theme ${analysisResult.choice}:`, result.error);
         defaultObjectWarning = result.error;
       }
     } else {
-      console.log(`ℹ️ Theme ${analysisResult.choice} configuration not finalized yet - skipping default object`);
-      defaultObjectWarning = 'Theme configuration pending. Default object will be added when product team provides data.';
+      console.log(`ℹ️ Theme ${analysisResult.choice} configuration not finalized yet - skipping default objects`);
+      defaultObjectWarning = 'Theme configuration pending. Default objects will be added when product team provides data.';
     }
 
     return res.status(200).json({
@@ -107,8 +107,9 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
           characteristics: themeInfo.characteristics,
           description: themeInfo.description
         },
-        defaultObject: defaultObjectId ? {
-          id: defaultObjectId,
+        defaultObjects: defaultObjectIds.length > 0 ? {
+          ids: defaultObjectIds,
+          count: defaultObjectIds.length,
           created: true
         } : {
           created: false,

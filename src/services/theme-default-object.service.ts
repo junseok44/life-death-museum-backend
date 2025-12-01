@@ -12,18 +12,18 @@ import { ObjectId } from 'mongoose';
 
 export interface CreateDefaultObjectResult {
   success: boolean;
-  modifiedObjectId?: ObjectId;
+  modifiedObjectIds?: ObjectId[];  // Changed to array for multiple objects
   error?: string;
 }
 
 /**
- * Creates a default modified object for a given theme
+ * Creates 2 default modified objects for a given theme
  * 
  * @param themeId - The theme ID (1-5)
- * @param userId - The user ID who owns this object (can be string or ObjectId)
- * @returns Result with the created modified object ID
+ * @param userId - The user ID who owns these objects (can be string or ObjectId)
+ * @returns Result with the created modified object IDs
  */
-export async function createDefaultModifiedObject(
+export async function createDefaultModifiedObjects(
   themeId: number,
   userId: string | ObjectId
 ): Promise<CreateDefaultObjectResult> {
@@ -38,64 +38,78 @@ export async function createDefaultModifiedObject(
       };
     }
 
-    const defaultObjectConfig = themeConfig.defaultModifiedObject;
+    const defaultObjectConfigs = themeConfig.defaultModifiedObjects;
 
-    // Check if placeholder data is still being used
-    if (defaultObjectConfig.originalObjectId.startsWith('PLACEHOLDER_')) {
-      console.warn(`⚠️ Theme ${themeId} is using placeholder object ID. Skipping default object creation.`);
+    // Check if placeholder data is still being used (check first object)
+    if (defaultObjectConfigs[0].originalObjectId.startsWith('PLACEHOLDER_')) {
+      console.warn(`⚠️ Theme ${themeId} is using placeholder object IDs. Skipping default objects creation.`);
       return {
         success: false,
         error: 'Theme configuration not finalized. Awaiting product team data.'
       };
     }
 
-    // Fetch the original object from the database
-    const originalObject = await ImageObject.findById(defaultObjectConfig.originalObjectId);
+    console.log(`📦 Creating default modified objects for theme ${themeId} (${themeConfig.name})`);
 
-    if (!originalObject) {
+    const createdObjectIds: ObjectId[] = [];
+
+    // Create each default object
+    for (let i = 0; i < defaultObjectConfigs.length; i++) {
+      const config = defaultObjectConfigs[i];
+      
+      // Fetch the original object from the database
+      const originalObject = await ImageObject.findById(config.originalObjectId);
+
+      if (!originalObject) {
+        console.error(`❌ Original object not found: ${config.originalObjectId}`);
+        continue; // Skip this object but try the others
+      }
+
+      // Create the modified object based on the original
+      const modifiedObject = new ModifiedObjectModel({
+        // Copy properties from original object
+        name: originalObject.name,
+        description: originalObject.description,
+        currentImageSet: originalObject.currentImageSet,
+        imageSets: originalObject.imageSets,
+        isUserMade: false, // This is a theme-provided default object
+        onType: originalObject.onType,
+
+        // Add modification properties from theme config
+        coordinates: config.coordinates,
+        isReversed: config.isReversed,
+        itemFunction: config.itemFunction,
+        additionalData: {
+          ...config.additionalData,
+          originalObjectId: originalObject._id,
+          userId: userId,
+          createdByTheme: themeId,
+          isDefaultObject: true,
+          objectIndex: i
+        }
+      });
+
+      // Save the modified object
+      const savedObject = await modifiedObject.save();
+      createdObjectIds.push(savedObject._id);
+      
+      console.log(`✅ Created default modified object ${i + 1}/2: ${savedObject._id}`);
+    }
+
+    if (createdObjectIds.length === 0) {
       return {
         success: false,
-        error: `Original object not found: ${defaultObjectConfig.originalObjectId}`
+        error: 'Failed to create any default objects'
       };
     }
 
-    console.log(`📦 Creating default modified object for theme ${themeId} (${themeConfig.name})`);
-
-    // Create the modified object based on the original
-    const modifiedObject = new ModifiedObjectModel({
-      // Copy properties from original object
-      name: originalObject.name,
-      description: originalObject.description,
-      currentImageSet: originalObject.currentImageSet,
-      imageSets: originalObject.imageSets,
-      isUserMade: false, // This is a theme-provided default object
-      onType: originalObject.onType,
-
-      // Add modification properties from theme config
-      coordinates: defaultObjectConfig.coordinates,
-      isReversed: defaultObjectConfig.isReversed,
-      itemFunction: defaultObjectConfig.itemFunction,
-      additionalData: {
-        ...defaultObjectConfig.additionalData,
-        originalObjectId: originalObject._id,
-        userId: userId,
-        createdByTheme: themeId,
-        isDefaultObject: true
-      }
-    });
-
-    // Save the modified object
-    const savedObject = await modifiedObject.save();
-
-    console.log(`✅ Created default modified object: ${savedObject._id}`);
-
     return {
       success: true,
-      modifiedObjectId: savedObject._id
+      modifiedObjectIds: createdObjectIds
     };
 
   } catch (error) {
-    console.error('❌ Error creating default modified object:', error);
+    console.error('❌ Error creating default modified objects:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -104,7 +118,7 @@ export async function createDefaultModifiedObject(
 }
 
 /**
- * Check if a theme has a valid default object configuration
+ * Check if a theme has valid default object configurations
  * (i.e., not using placeholder data)
  * 
  * @param themeId - The theme ID to check
@@ -112,9 +126,10 @@ export async function createDefaultModifiedObject(
  */
 export function hasValidDefaultObjectConfig(themeId: number): boolean {
   const themeConfig = THEME_CONFIGS[themeId];
-  if (!themeConfig) {
+  if (!themeConfig || !themeConfig.defaultModifiedObjects || themeConfig.defaultModifiedObjects.length === 0) {
     return false;
   }
   
-  return !themeConfig.defaultModifiedObject.originalObjectId.startsWith('PLACEHOLDER_');
+  // Check if any object is using placeholder
+  return !themeConfig.defaultModifiedObjects[0].originalObjectId.startsWith('PLACEHOLDER_');
 }

@@ -62,9 +62,7 @@ export class ObjectService {
   ): Promise<CreateObjectResult> {
     // Generate object metadata (name, color, description, onType, visual_prompt) together
     const metadataPrompt = ObjectPrompts.generateObjectMetadata(content);
-    const metadataText = await textGenerator.generateText(metadataPrompt, {
-      temperature: 0.7,
-    });
+    const metadataText = await textGenerator.generateText(metadataPrompt, {});
 
     // Parse JSON response using ResponseParser
     const metadata = ResponseParser.parseJSON(metadataText) as {

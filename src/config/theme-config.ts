@@ -55,7 +55,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_1_1",
+        originalObjectId: "692d7da2b1ad7c5ca3eb06f0",
         coordinates: {
           x: 0.75,
           y: 0.4 
@@ -70,7 +70,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       },
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_1_2",
+        originalObjectId: "692d7da0b1ad7c5ca3eb06a6",
         coordinates: {
           x: 0.3,
           y: 0.35
@@ -98,7 +98,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_2_1",
+        originalObjectId: "692d7da3b1ad7c5ca3eb071c",
         coordinates: {
           x: 0.85,
           y: 0.2
@@ -113,7 +113,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       },
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_2_2",
+        originalObjectId: "692d7da2b1ad7c5ca3eb0708",
         coordinates: {
           x: 0.35,
           y: 0.3
@@ -141,7 +141,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_3_1",
+        originalObjectId: "692d7da0b1ad7c5ca3eb06b0",
         coordinates: {
           x: 0.75,
           y: 0.4
@@ -156,7 +156,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       },
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_3_2",
+        originalObjectId: "692d7da0b1ad7c5ca3eb06c1",
         coordinates: {
           x: 0.3,
           y: 0.35
@@ -184,7 +184,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_4_1",
+        originalObjectId: "692d7da1b1ad7c5ca3eb06e6",
         coordinates: {
           x: 0.75,
           y: 0.4
@@ -199,7 +199,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       },
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_4_2",
+        originalObjectId: "692d7da1b1ad7c5ca3eb06cb",
         coordinates: {
           x: 0.3,
           y: 0.35
@@ -227,7 +227,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_5_1",
+        originalObjectId: "692d7da1b1ad7c5ca3eb06d5",
         coordinates: {
           x: 0.75,
           y: 0.4
@@ -242,7 +242,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       },
       {
         // TODO: Replace with actual object ID from product team
-        originalObjectId: "PLACEHOLDER_OBJECT_ID_5_2",
+        originalObjectId: "692d7da2b1ad7c5ca3eb070b",
         coordinates: {
           x: 0.3,
           y: 0.35

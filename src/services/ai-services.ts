@@ -1,11 +1,10 @@
 import {
-  TextGeneratorInterface,
   ImageGeneratorInterface,
+  TextGeneratorInterface,
 } from "../types/ai-services";
-import { MockTextGenerator, MockImageGenerator } from "./mock-ai-services";
+import { GoogleImagenImageGenerator } from "./ai/google-imagen-image-generator";
+import { MockTextGenerator } from "./mock-ai-services";
 import { OpenAITextGenerator } from "./openai-text-generator";
-import { OpenAIImageGenerator } from "./openai-image-generator";
-import { GeminiImageGenerator } from "./ai/gemini-image-generator";
 
 /**
  * Text generation service instance
@@ -24,6 +23,5 @@ export const textGenerator: TextGeneratorInterface = process.env.OPENAI_API_KEY
  * Image generation service instance
  * Automatically chooses between OpenAI and Mock implementation based on API key availability
  */
-export const imageGenerator: ImageGeneratorInterface = new GeminiImageGenerator(
-  process.env.GOOGLE_GENAI_API_KEY
-);
+export const imageGenerator: ImageGeneratorInterface =
+  new GoogleImagenImageGenerator(process.env.GOOGLE_GENAI_API_KEY);

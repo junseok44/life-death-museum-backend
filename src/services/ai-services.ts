@@ -5,6 +5,7 @@ import {
 import { MockTextGenerator, MockImageGenerator } from "./mock-ai-services";
 import { OpenAITextGenerator } from "./openai-text-generator";
 import { OpenAIImageGenerator } from "./openai-image-generator";
+import { GeminiImageGenerator } from "./ai/gemini-image-generator";
 
 /**
  * Text generation service instance
@@ -13,7 +14,9 @@ import { OpenAIImageGenerator } from "./openai-image-generator";
 export const textGenerator: TextGeneratorInterface = process.env.OPENAI_API_KEY
   ? new OpenAITextGenerator(process.env.OPENAI_API_KEY)
   : (() => {
-      console.warn('⚠️  OpenAI API key not found. Using mock text generation mode.');
+      console.warn(
+        "⚠️  OpenAI API key not found. Using mock text generation mode."
+      );
       return new MockTextGenerator();
     })();
 
@@ -21,9 +24,6 @@ export const textGenerator: TextGeneratorInterface = process.env.OPENAI_API_KEY
  * Image generation service instance
  * Automatically chooses between OpenAI and Mock implementation based on API key availability
  */
-export const imageGenerator: ImageGeneratorInterface = process.env.OPENAI_API_KEY
-  ? new OpenAIImageGenerator(process.env.OPENAI_API_KEY)
-  : (() => {
-      console.warn('⚠️  OpenAI API key not found. Using mock image generation mode.');
-      return new MockImageGenerator();
-    })();
+export const imageGenerator: ImageGeneratorInterface = new GeminiImageGenerator(
+  process.env.GOOGLE_GENAI_API_KEY
+);

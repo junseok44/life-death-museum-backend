@@ -96,7 +96,7 @@ ${visualPrompt}
 
 Isometric view, facing right.
 
-Isolated on a pure white background. 
+**Transparent background.**
 
 Do not add any text inside the image.
 

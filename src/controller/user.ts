@@ -7,7 +7,7 @@ import {
   updateInvitationSchema,
   type UpdateInvitationBody,
 } from "../validators/user.validator";
-import { getThemeConfig, getThemeColors, getThemeWeather, getThemeName } from "../config/theme-config";
+import { getThemeConfig, getThemeColors, getThemeWeather, getThemeName, getThemeBackgroundMusic } from "../config/theme-config";
 import { createDefaultModifiedObjects, hasValidDefaultObjectConfig } from "../services/theme-default-object.service";
 
 export const userRouter = Router();
@@ -187,6 +187,86 @@ userRouter.put(
       res.status(500).json({
         success: false,
         message: "Internal server error"
+      });
+    }
+  }
+);
+
+// PATCH /users/theme/music - Update user's background music based on themeId
+userRouter.patch(
+  "/theme/music",
+  authenticateJWT,
+  async (req: Request, res: Response, _next: NextFunction) => {
+    try {
+      const userId = req.user!.id;
+      const { themeId } = req.body;
+
+      // Validate themeId
+      if (!themeId) {
+        return res.status(400).json({
+          success: false,
+          message: "Theme ID is required"
+        });
+      }
+
+      if (typeof themeId !== 'number' || themeId < 1 || themeId > 5) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid theme ID. Must be a number between 1 and 5."
+        });
+      }
+
+      // Get theme background music configuration
+      const backgroundMusic = getThemeBackgroundMusic(themeId);
+      
+      if (!backgroundMusic) {
+        return res.status(404).json({
+          success: false,
+          message: "Theme not found"
+        });
+      }
+
+      // Update user's background music
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+          'theme.backgroundMusic.url': backgroundMusic.url,
+          'theme.backgroundMusic.name': backgroundMusic.name
+        },
+        { new: true, runValidators: true }
+      ).exec();
+
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found"
+        });
+      }
+
+      console.log(`✅ Updated background music for user ${userId} to theme ${themeId}`);
+
+      // Return response matching API documentation format
+      res.status(200).json({
+        success: true,
+        message: "User background music updated successfully",
+        data: {
+          theme: {
+            floorColor: updatedUser.theme.floorColor,
+            leftWallColor: updatedUser.theme.leftWallColor,
+            rightWallColor: updatedUser.theme.rightWallColor,
+            weather: updatedUser.theme.weather,
+            backgroundMusic: {
+              name: updatedUser.theme.backgroundMusic.name,
+              src: updatedUser.theme.backgroundMusic.url // Map url to src as per API spec
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error updating background music:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update music."
       });
     }
   }

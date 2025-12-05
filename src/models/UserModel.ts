@@ -45,6 +45,10 @@ const UserSchema: Schema = new Schema(
         enum: ["sunny", "raining", "cloudy", "snowing", "night", "sunset"],
         required: true,
       },
+      backgroundMusic: {
+        url: { type: String, required: true },
+        name: { type: String, required: true },
+      },
     },
     invitation: {
       type: String,

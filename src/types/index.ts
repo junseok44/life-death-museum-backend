@@ -1,3 +1,5 @@
+import { BackgroundMusic } from "../config/theme-config";
+
 // Common types
 export interface ApiResponse<T = unknown> {
   status: "success" | "error";
@@ -28,6 +30,7 @@ export interface Theme {
   leftWallColor: string;
   rightWallColor: string;
   weather: ThemeWeather;
+  backgroundMusic: BackgroundMusic;
 }
 
 // OnboardingResponse is now defined in types/ai-services.ts

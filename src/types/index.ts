@@ -21,11 +21,13 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
 }
 
 // Auth related types
+export type ThemeWeather = "sunny" | "raining" | "cloudy" | "snowing" | "night" | "sunset";
+
 export interface Theme {
   floorColor: string;
   leftWallColor: string;
   rightWallColor: string;
-  weather: "sunny" | "raining" | "cloudy" | "snowing" | "night" | "sunset";
+  weather: ThemeWeather;
 }
 
 // OnboardingResponse is now defined in types/ai-services.ts

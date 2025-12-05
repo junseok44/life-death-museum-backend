@@ -6,6 +6,7 @@ export interface User extends Document {
   name?: string;
   email: string;
   password: string;
+  themeId?: number;
   theme: Theme;
   invitation?: string;
   objectIds: ObjectId[];
@@ -29,6 +30,11 @@ const UserSchema: Schema = new Schema(
     password: {
       type: String,
       required: true,
+    },
+    themeId: {
+      type: Number,
+      min: 1,
+      max: 5,
     },
     theme: {
       floorColor: { type: String, required: true },

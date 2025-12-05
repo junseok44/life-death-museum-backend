@@ -3,7 +3,7 @@ import { authenticateJWT } from '../middleware/auth';
 import { themeAnalysisService, OnboardingResponse, ThemeAnalysisResult } from '../services/theme-analysis-service';
 import { User } from '../models/UserModel';
 import { createDefaultModifiedObjects, hasValidDefaultObjectConfig } from '../services/theme-default-object.service';
-import { getThemeColors } from '../config/theme-config';
+import { getThemeColors, getThemeWeather } from '../config/theme-config';
 import mongoose from 'mongoose';
 
 
@@ -66,8 +66,9 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
       reason: analysisResult.reason
     });
 
-    // Get theme colors
+    // Get theme colors and weather
     const themeColors = getThemeColors(analysisResult.choice);
+    const themeWeather = getThemeWeather(analysisResult.choice);
 
     // Create and add 2 default modified objects for this theme
     let defaultObjectIds: any[] = [];
@@ -79,9 +80,10 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
       if (result.success && result.modifiedObjectIds && result.modifiedObjectIds.length > 0) {
         defaultObjectIds = result.modifiedObjectIds;
         
-        // Update user with default objects and theme colors
+        // Update user with default objects, themeId, theme colors, and weather
         const updateData: any = {
-          $addToSet: { modifiedObjectIds: { $each: defaultObjectIds } }
+          $addToSet: { modifiedObjectIds: { $each: defaultObjectIds } },
+          themeId: analysisResult.choice
         };
 
         // Add theme colors if available
@@ -91,13 +93,18 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
           updateData['theme.rightWallColor'] = themeColors.rightWallColor;
         }
 
+        // Add weather if available
+        if (themeWeather) {
+          updateData['theme.weather'] = themeWeather;
+        }
+
         await User.findByIdAndUpdate(
           userId,
           updateData,
           { new: true }
         );
         
-        console.log(`✅ Added ${defaultObjectIds.length} default objects and theme colors to user ${userId}`);
+        console.log(`✅ Added ${defaultObjectIds.length} default objects, themeId, theme colors, and weather to user ${userId}`);
       } else {
         console.warn(`⚠️ Failed to create default objects for theme ${analysisResult.choice}:`, result.error);
         defaultObjectWarning = result.error;
@@ -121,7 +128,8 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
           name: themeInfo.name,
           characteristics: themeInfo.characteristics,
           description: themeInfo.description,
-          colors: themeColors || undefined
+          colors: themeColors || undefined,
+          weather: themeWeather || undefined
         },
         defaultObjects: defaultObjectIds.length > 0 ? {
           ids: defaultObjectIds,
@@ -132,7 +140,8 @@ themeOnboardingRouter.post('/analyze', authenticateJWT, async (req: Request<{}, 
           reason: defaultObjectWarning
         },
         user: {
-          id: userId
+          id: userId,
+          themeId: analysisResult.choice
         }
       }
     });

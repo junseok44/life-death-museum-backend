@@ -329,3 +329,11 @@ export function getThemeName(themeId: number): string | null {
   const config = THEME_CONFIGS[themeId];
   return config ? config.name : null;
 }
+
+/**
+ * Get theme background music by ID
+ */
+export function getThemeBackgroundMusic(themeId: number): BackgroundMusic | null {
+  const config = THEME_CONFIGS[themeId];
+  return config ? config.backgroundMusic : null;
+}

@@ -141,7 +141,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       leftWallColor: "#DDDDDD",
       rightWallColor: "#2E2F2E"
     },
-    weather: "cloudy",
+    weather: "night",
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team
@@ -185,7 +185,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       leftWallColor: "#DDE88C",
       rightWallColor: "#C9B59B"
     },
-    weather: "sunny",
+    weather: "cloudy",
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team

@@ -1,14 +1,22 @@
-import { Router, Request, Response, NextFunction } from "express";
-import { User } from "../models/UserModel";
-import { ModifiedObjectModel } from "../models/ModifiedObject";
+import { NextFunction, Request, Response, Router } from "express";
+import {
+  getThemeBackgroundMusic,
+  getThemeColors,
+  getThemeConfig,
+  getThemeName,
+  getThemeWeather,
+} from "../config/theme-config";
 import { authenticateJWT } from "../middleware/auth";
 import { validate } from "../middleware/validation";
+import { User } from "../models/UserModel";
+import {
+  createDefaultModifiedObjects,
+  hasValidDefaultObjectConfig,
+} from "../services/theme-default-object.service";
 import {
   updateInvitationSchema,
   type UpdateInvitationBody,
 } from "../validators/user.validator";
-import { getThemeConfig, getThemeColors, getThemeWeather, getThemeName, getThemeBackgroundMusic } from "../config/theme-config";
-import { createDefaultModifiedObjects, hasValidDefaultObjectConfig } from "../services/theme-default-object.service";
 
 export const userRouter = Router();
 
@@ -62,7 +70,7 @@ userRouter.put(
       if (isNaN(themeId) || themeId < 1 || themeId > 5) {
         return res.status(400).json({
           success: false,
-          message: "Invalid theme ID. Must be between 1 and 5."
+          message: "Invalid theme ID. Must be between 1 and 5.",
         });
       }
 
@@ -71,20 +79,21 @@ userRouter.put(
       if (!themeConfig) {
         return res.status(404).json({
           success: false,
-          message: "Theme not found"
+          message: "Theme not found",
         });
       }
 
       const themeColors = getThemeColors(themeId);
       const themeWeather = getThemeWeather(themeId);
       const themeName = getThemeName(themeId);
+      const themeBackgroundMusic = getThemeBackgroundMusic(themeId);
 
       // Get current user to check for previous theme
       const currentUser = await User.findById(userId).exec();
       if (!currentUser) {
         return res.status(404).json({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
 
@@ -93,12 +102,16 @@ userRouter.put(
       if (currentUser.themeId && currentUser.themeId !== themeId) {
         // Get the previous theme's original object IDs from config
         const previousThemeConfig = getThemeConfig(currentUser.themeId);
-        
-        if (previousThemeConfig && previousThemeConfig.defaultModifiedObjects.length > 0) {
+
+        if (
+          previousThemeConfig &&
+          previousThemeConfig.defaultModifiedObjects.length > 0
+        ) {
           // Get the original object IDs from the previous theme config
-          const objectIdsToRemove = previousThemeConfig.defaultModifiedObjects.map(
-            obj => obj.originalObjectId
-          );
+          const objectIdsToRemove =
+            previousThemeConfig.defaultModifiedObjects.map(
+              (obj) => obj.originalObjectId
+            );
 
           // Remove these IDs directly from user's modifiedObjectIds array
           const result = await User.findByIdAndUpdate(
@@ -109,7 +122,9 @@ userRouter.put(
 
           if (result) {
             removedObjectsCount = objectIdsToRemove.length;
-            console.log(`🗑️  Removed ${removedObjectsCount} default object IDs from previous theme ${currentUser.themeId}`);
+            console.log(
+              `🗑️  Removed ${removedObjectsCount} default object IDs from previous theme ${currentUser.themeId}`
+            );
           }
         }
       }
@@ -120,46 +135,61 @@ userRouter.put(
 
       if (hasValidDefaultObjectConfig(themeId)) {
         const result = await createDefaultModifiedObjects(themeId, userId);
-        
-        if (result.success && result.modifiedObjectIds && result.modifiedObjectIds.length > 0) {
+
+        if (
+          result.success &&
+          result.modifiedObjectIds &&
+          result.modifiedObjectIds.length > 0
+        ) {
           defaultObjectIds = result.modifiedObjectIds;
           defaultObjectsAdded = defaultObjectIds.length;
-          
-          console.log(`✅ Created ${defaultObjectsAdded} default objects for theme ${themeId}`);
+
+          console.log(
+            `✅ Created ${defaultObjectsAdded} default objects for theme ${themeId}`
+          );
         } else {
-          console.warn(`⚠️ Failed to create default objects for theme ${themeId}:`, result.error);
+          console.warn(
+            `⚠️ Failed to create default objects for theme ${themeId}:`,
+            result.error
+          );
         }
       }
 
       // Update user with themeId, theme colors, weather, and add default objects
       const updateData: any = {
-        themeId: themeId
+        themeId: themeId,
       };
 
       if (defaultObjectIds.length > 0) {
-        updateData.$addToSet = { modifiedObjectIds: { $each: defaultObjectIds } };
+        updateData.$addToSet = {
+          modifiedObjectIds: { $each: defaultObjectIds },
+        };
       }
 
       if (themeColors) {
-        updateData['theme.floorColor'] = themeColors.floorColor;
-        updateData['theme.leftWallColor'] = themeColors.leftWallColor;
-        updateData['theme.rightWallColor'] = themeColors.rightWallColor;
+        updateData["theme.floorColor"] = themeColors.floorColor;
+        updateData["theme.leftWallColor"] = themeColors.leftWallColor;
+        updateData["theme.rightWallColor"] = themeColors.rightWallColor;
       }
 
       if (themeWeather) {
-        updateData['theme.weather'] = themeWeather;
+        updateData["theme.weather"] = themeWeather;
       }
 
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        updateData,
-        { new: true, runValidators: true }
-      ).exec();
+      if (themeBackgroundMusic) {
+        updateData["theme.backgroundMusic.url"] = themeBackgroundMusic.url;
+        updateData["theme.backgroundMusic.name"] = themeBackgroundMusic.name;
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+        new: true,
+        runValidators: true,
+      }).exec();
 
       if (!updatedUser) {
         return res.status(404).json({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
 
@@ -175,18 +205,22 @@ userRouter.put(
           colors: themeColors || {
             floorColor: updatedUser.theme.floorColor,
             leftWallColor: updatedUser.theme.leftWallColor,
-            rightWallColor: updatedUser.theme.rightWallColor
+            rightWallColor: updatedUser.theme.rightWallColor,
           },
           weather: themeWeather || updatedUser.theme.weather,
+          backgroundMusic: themeBackgroundMusic || {
+            url: updatedUser.theme.backgroundMusic?.url,
+            name: updatedUser.theme.backgroundMusic?.name,
+          },
           previousThemeObjectsRemoved: removedObjectsCount,
-          defaultObjectsAdded: defaultObjectsAdded
-        }
+          defaultObjectsAdded: defaultObjectsAdded,
+        },
       });
     } catch (error) {
       console.error("Error updating theme:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   }
@@ -205,24 +239,24 @@ userRouter.patch(
       if (!themeId) {
         return res.status(400).json({
           success: false,
-          message: "Theme ID is required"
+          message: "Theme ID is required",
         });
       }
 
-      if (typeof themeId !== 'number' || themeId < 1 || themeId > 5) {
+      if (typeof themeId !== "number" || themeId < 1 || themeId > 5) {
         return res.status(400).json({
           success: false,
-          message: "Invalid theme ID. Must be a number between 1 and 5."
+          message: "Invalid theme ID. Must be a number between 1 and 5.",
         });
       }
 
       // Get theme background music configuration
       const backgroundMusic = getThemeBackgroundMusic(themeId);
-      
+
       if (!backgroundMusic) {
         return res.status(404).json({
           success: false,
-          message: "Theme not found"
+          message: "Theme not found",
         });
       }
 
@@ -230,8 +264,8 @@ userRouter.patch(
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         {
-          'theme.backgroundMusic.url': backgroundMusic.url,
-          'theme.backgroundMusic.name': backgroundMusic.name
+          "theme.backgroundMusic.url": backgroundMusic.url,
+          "theme.backgroundMusic.name": backgroundMusic.name,
         },
         { new: true, runValidators: true }
       ).exec();
@@ -239,11 +273,13 @@ userRouter.patch(
       if (!updatedUser) {
         return res.status(404).json({
           success: false,
-          message: "User not found"
+          message: "User not found",
         });
       }
 
-      console.log(`✅ Updated background music for user ${userId} to theme ${themeId}`);
+      console.log(
+        `✅ Updated background music for user ${userId} to theme ${themeId}`
+      );
 
       // Return response matching API documentation format
       res.status(200).json({
@@ -257,16 +293,16 @@ userRouter.patch(
             weather: updatedUser.theme.weather,
             backgroundMusic: {
               name: updatedUser.theme.backgroundMusic.name,
-              src: updatedUser.theme.backgroundMusic.url // Map url to src as per API spec
-            }
-          }
-        }
+              src: updatedUser.theme.backgroundMusic.url, // Map url to src as per API spec
+            },
+          },
+        },
       });
     } catch (error) {
       console.error("Error updating background music:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to update music."
+        message: "Failed to update music.",
       });
     }
   }

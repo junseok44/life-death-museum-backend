@@ -22,7 +22,7 @@ export interface UpdateModifiedParams {
   name?: string;
   description?: string;
   currentImageSetId?: string;
-  itemFunction?: "Gallery" | "Link" | "Board" | null;
+  itemFunction?: ItemFunction | null;
   onType?: OnType;
   additionalData?: unknown;
   coordinates?: {
@@ -141,8 +141,14 @@ export class ModifiedService {
     const targetItemFunction = params.itemFunction ?? modified.itemFunction;
 
     // If itemFunction is being set to Link or Board, additionalData is required
-    if (params.itemFunction === ItemFunction.Link || params.itemFunction === ItemFunction.Board) {
-      if (params.additionalData === undefined || params.additionalData === null) {
+    if (
+      params.itemFunction === ItemFunction.Link ||
+      params.itemFunction === ItemFunction.Board
+    ) {
+      if (
+        params.additionalData === undefined ||
+        params.additionalData === null
+      ) {
         throw new Error(
           `additionalData is required when itemFunction is ${params.itemFunction}`
         );

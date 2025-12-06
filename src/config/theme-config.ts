@@ -159,7 +159,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       url: "https://life-death-museum-bucket.s3.ap-northeast-2.amazonaws.com/music/city-night-%E1%84%83%E1%85%A9%E1%84%89%E1%85%B5.wav",
       name: "도시"
     },
-    weather: "cloudy",
+    weather: "night",
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team
@@ -207,7 +207,7 @@ export const THEME_CONFIGS: Record<number, ThemeConfig> = {
       url: "https://life-death-museum-bucket.s3.ap-northeast-2.amazonaws.com/music/sunny-day_%E1%84%8C%E1%85%A1%E1%84%8B%E1%85%A7%E1%86%AB.wav",
       name: "자연"
     },
-    weather: "sunny",
+    weather: "cloudy",
     defaultModifiedObjects: [
       {
         // TODO: Replace with actual object ID from product team

@@ -2,9 +2,8 @@ import {
   ImageGeneratorInterface,
   TextGeneratorInterface,
 } from "../../types/ai-services";
-import { GeminiImageGenerator } from "./gemini-image-generator";
 import { GeminiTextGenerator } from "./gemini-text-generator";
-import { GoogleImagenImageGenerator } from "./google-imagen-image-generator";
+import { GoogleImagenFallbackImageGenerator } from "./google-imagen-fallback-image-generator";
 
 /**
  * Text generation service instance
@@ -14,7 +13,9 @@ export const textGenerator: TextGeneratorInterface = new GeminiTextGenerator();
 
 /**
  * Image generation service instance
- * Automatically chooses between OpenAI and Mock implementation based on API key availability
+ * Uses Google Imagen with automatic fallback (fast -> standard -> ultra) to handle quota limits
  */
 export const imageGenerator: ImageGeneratorInterface =
-  new GoogleImagenImageGenerator(process.env.GOOGLE_GENAI_API_KEY || "");
+  new GoogleImagenFallbackImageGenerator(
+    process.env.GOOGLE_GENAI_API_KEY || ""
+  );

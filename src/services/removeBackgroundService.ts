@@ -38,9 +38,17 @@ export class RemoveBackgroundService {
         : "image.png";
     formData.append("image_file", blob, filename);
 
-    const response = await fetch("https://api.remove.bg/v1.0/removebg", {
+    const endpoint = process.env.REMOVE_BG_SERVICE_ENDPOINT || "";
+
+    if (!endpoint) {
+      throw new Error(
+        "REMOVE_BG_SERVICE_ENDPOINT environment variable is required"
+      );
+    }
+
+    const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "X-Api-Key": this.apiKey },
+      headers: { "Content-Type": "multipart/form-data" },
       body: formData,
     });
 

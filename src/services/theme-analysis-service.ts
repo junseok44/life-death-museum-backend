@@ -1,5 +1,5 @@
-import { textGenerator } from './ai-services';
-import { getThemeConfig } from '../config/theme-config';
+import { textGenerator } from './ai';
+import { getThemeConfig } from '../config/theme-config.ts';
 
 /**
  * Theme analysis result structure

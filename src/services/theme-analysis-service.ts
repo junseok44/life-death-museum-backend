@@ -1,5 +1,5 @@
-import { textGenerator } from './ai';
-import { getThemeConfig } from '../config/theme-config.ts';
+import { textGenerator } from "./ai";
+import { getThemeConfig } from "../config/theme-config";
 
 /**
  * Theme analysis result structure
@@ -61,52 +61,56 @@ export class ThemeAnalysisService {
   /**
    * Analyzes user onboarding responses using the generic text generator
    */
-  async analyzeResponses(responses: OnboardingResponse[]): Promise<ThemeAnalysisResult> {
+  async analyzeResponses(
+    responses: OnboardingResponse[]
+  ): Promise<ThemeAnalysisResult> {
     try {
       // Validate input
       if (!responses || responses.length !== 5) {
-        throw new Error('Exactly 5 onboarding responses are required');
+        throw new Error("Exactly 5 onboarding responses are required");
       }
 
       // Format user responses for the prompt
       const userResponsesText = responses
-        .map((response, index) => `Q${index + 1}: ${response.question}\nA${index + 1}: ${response.answer}`)
-        .join('\n\n');
+        .map(
+          (response, index) =>
+            `Q${index + 1}: ${response.question}\nA${index + 1}: ${response.answer}`
+        )
+        .join("\n\n");
 
       const userPrompt = `[유저의 응답]\n${userResponsesText}`;
 
-      console.log('🤖 Analyzing responses using text generator...');
+      console.log("🤖 Analyzing responses using text generator...");
 
       // Use the generic text generator
       const responseText = await textGenerator.generateText(userPrompt, {
         system_prompt: this.SYSTEM_PROMPT,
         temperature: 0.7,
         max_tokens: 500,
-        response_format: { type: 'json_object' }
+        response_format: { type: "json_object" },
       });
 
-      console.log('🤖 Theme Analysis Response:', responseText);
+      console.log("🤖 Theme Analysis Response:", responseText);
 
       // Parse the JSON response
       const analysisResult: ThemeAnalysisResult = JSON.parse(responseText);
 
       // Validate the response structure
       if (!analysisResult.choice || !analysisResult.reason) {
-        throw new Error('Invalid AI response format');
+        throw new Error("Invalid AI response format");
       }
 
       // Validate choice is between 1-5
       if (analysisResult.choice < 1 || analysisResult.choice > 5) {
-        throw new Error('Invalid theme choice from AI');
+        throw new Error("Invalid theme choice from AI");
       }
 
       return analysisResult;
-
     } catch (error) {
-      console.error('❌ Theme Analysis Error:', error);
-      
+      console.error("❌ Theme Analysis Error:", error);
+
       // Fallback to rule-based analysis if text generation fails
-      console.log('🔄 Falling back to rule-based analysis');
+      console.log("🔄 Falling back to rule-based analysis");
       return this.fallbackAnalysis(responses);
     }
   }
@@ -114,59 +118,84 @@ export class ThemeAnalysisService {
   /**
    * Fallback analysis when AI fails
    */
-  private fallbackAnalysis(responses: OnboardingResponse[]): ThemeAnalysisResult {
-    const allAnswers = responses.map(r => r.answer.toLowerCase()).join(' ');
-    
+  private fallbackAnalysis(
+    responses: OnboardingResponse[]
+  ): ThemeAnalysisResult {
+    const allAnswers = responses.map((r) => r.answer.toLowerCase()).join(" ");
+
     const themeScores = {
       1: 0, // 동심파
       2: 0, // 낭만파
       3: 0, // 도시파
       4: 0, // 자연파
-      5: 0  // 기억파
+      5: 0, // 기억파
     };
 
-    if (allAnswers.includes('가족') || allAnswers.includes('따뜻') || allAnswers.includes('순수')) {
+    if (
+      allAnswers.includes("가족") ||
+      allAnswers.includes("따뜻") ||
+      allAnswers.includes("순수")
+    ) {
       themeScores[1] += 2;
     }
-    if (allAnswers.includes('사랑') || allAnswers.includes('감성') || allAnswers.includes('예술')) {
+    if (
+      allAnswers.includes("사랑") ||
+      allAnswers.includes("감성") ||
+      allAnswers.includes("예술")
+    ) {
       themeScores[2] += 2;
     }
-    if (allAnswers.includes('성공') || allAnswers.includes('열정') || allAnswers.includes('성장')) {
+    if (
+      allAnswers.includes("성공") ||
+      allAnswers.includes("열정") ||
+      allAnswers.includes("성장")
+    ) {
       themeScores[3] += 2;
     }
-    if (allAnswers.includes('자연') || allAnswers.includes('평화') || allAnswers.includes('단순')) {
+    if (
+      allAnswers.includes("자연") ||
+      allAnswers.includes("평화") ||
+      allAnswers.includes("단순")
+    ) {
       themeScores[4] += 2;
     }
-    if (allAnswers.includes('추억') || allAnswers.includes('기억') || allAnswers.includes('그리움')) {
+    if (
+      allAnswers.includes("추억") ||
+      allAnswers.includes("기억") ||
+      allAnswers.includes("그리움")
+    ) {
       themeScores[5] += 2;
     }
 
-    const bestTheme = Object.entries(themeScores).reduce((a, b) => 
-      themeScores[parseInt(a[0]) as keyof typeof themeScores] > themeScores[parseInt(b[0]) as keyof typeof themeScores] ? a : b
+    const bestTheme = Object.entries(themeScores).reduce((a, b) =>
+      themeScores[parseInt(a[0]) as keyof typeof themeScores] >
+      themeScores[parseInt(b[0]) as keyof typeof themeScores]
+        ? a
+        : b
     )[0];
 
     const choice = parseInt(bestTheme);
-    
+
     const reasons = {
       1: "따뜻한 마음을 간직한 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
       2: "감성이 풍부한 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
       3: "열정적이고 진취적인 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
       4: "평온함을 추구하는 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
-      5: "소중한 추억을 간직한 당신에게는, 이 테마가 잘 어울릴 것 같아요."
+      5: "소중한 추억을 간직한 당신에게는, 이 테마가 잘 어울릴 것 같아요.",
     };
 
     return {
       choice,
-      reason: reasons[choice as keyof typeof reasons]
+      reason: reasons[choice as keyof typeof reasons],
     };
   }
 
   /**
    * Get theme information by ID
    */
-  getThemeInfo(themeId: number): { 
-    name: string; 
-    characteristics: string[]; 
+  getThemeInfo(themeId: number): {
+    name: string;
+    characteristics: string[];
     description: string;
     backgroundMusic: {
       url: string;
@@ -174,18 +203,18 @@ export class ThemeAnalysisService {
     };
   } {
     const themeConfig = getThemeConfig(themeId);
-    
+
     if (!themeConfig) {
       // Fallback to theme 1 if theme not found
       const fallbackConfig = getThemeConfig(1);
       if (!fallbackConfig) {
-        throw new Error('Theme configuration not found');
+        throw new Error("Theme configuration not found");
       }
       return {
         name: fallbackConfig.name,
         characteristics: fallbackConfig.characteristics,
         description: fallbackConfig.description,
-        backgroundMusic: fallbackConfig.backgroundMusic
+        backgroundMusic: fallbackConfig.backgroundMusic,
       };
     }
 
@@ -193,7 +222,7 @@ export class ThemeAnalysisService {
       name: themeConfig.name,
       characteristics: themeConfig.characteristics,
       description: themeConfig.description,
-      backgroundMusic: themeConfig.backgroundMusic
+      backgroundMusic: themeConfig.backgroundMusic,
     };
   }
 }

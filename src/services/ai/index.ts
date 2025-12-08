@@ -1,9 +1,9 @@
 import {
   ImageGeneratorInterface,
   TextGeneratorInterface,
-} from "../types/ai-services";
-import { GeminiTextGenerator } from "./ai/gemini-text-generator";
-import { GoogleImagenImageGenerator } from "./ai/google-imagen-image-generator";
+} from "../../types/ai-services";
+import { GeminiTextGenerator } from "./gemini-text-generator";
+import { GoogleImagenImageGenerator } from "./google-imagen-image-generator";
 
 /**
  * Text generation service instance

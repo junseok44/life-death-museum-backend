@@ -1,7 +1,7 @@
 import { ImageObject, OnType } from "../models/ObjectModel";
 import { User } from "../models/UserModel";
 import mongoose from "mongoose";
-import { textGenerator, imageGenerator } from "./ai-services";
+import { textGenerator, imageGenerator } from "./ai";
 import { ObjectPrompts } from "../prompts/objectPrompts";
 import { storage } from "./storage";
 import { ImageConverter } from "../utils/imageConverter";

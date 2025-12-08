@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import {
   ImageGeneratorInterface,
   ImageGenerationResult,
-} from "../types/ai-services";
+} from "../../types/ai-services";
 
 /**
  * 🤖 OpenAI implementation of ImageGeneratorInterface.

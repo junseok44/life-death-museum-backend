@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { TextGeneratorInterface } from "../types/ai-services";
+import { TextGeneratorInterface } from "../../types/ai-services";
 
 /**
  * 🤖 OpenAI implementation of TextGeneratorInterface.

@@ -3,7 +3,7 @@ import {
   ImageGeneratorInterface,
   ImageGenerationResult,
   ImageOutput,
-} from "../types/ai-services";
+} from "../../types/ai-services";
 
 /**
  * 🧪 Mock implementation of TextGeneratorInterface for testing/development.

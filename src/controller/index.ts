@@ -5,6 +5,7 @@ import { modifiedRouter } from "./modified";
 import { onboardingRouter } from "./onboarding";
 import { themeOnboardingRouter } from "./themeOnboarding";
 import { userRouter } from "./user";
+import { qrcodeRouter } from "./qrcode";
 
 export const setupRoutes = (app: Application): void => {
   // Auth routes
@@ -25,6 +26,9 @@ export const setupRoutes = (app: Application): void => {
 
   // User routes
   app.use("/users", userRouter);
+
+  // QR Code route
+  app.use("/capture-and-generate-qr", qrcodeRouter);
 
   // Add more routes here
   // app.use('/api/posts', postRouter);

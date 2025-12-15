@@ -17,7 +17,11 @@ import "./config/passport"; // Initialize Passport configuration
 const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+app.use(
+  bodyParser.json({
+    limit: "20mb",
+  })
+);
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(

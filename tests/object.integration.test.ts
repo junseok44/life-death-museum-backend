@@ -111,21 +111,75 @@ describe("Object Integration Tests", () => {
   let app: Express;
   let testUser: InstanceType<typeof User>;
   let testAdmin: InstanceType<typeof User>;
-  const MONGODB_TEST_URI =
-    process.env.MONGODB_TEST_URI || "mongodb://localhost:27017/test-db";
+
+  const BASE_MONGODB_URI = process.env.MONGODB_TEST_URI;
+
+  if (!BASE_MONGODB_URI) {
+    throw new Error("MONGODB_TEST_URI is not set");
+  }
+
+  // 이 테스트 파일 전용 DB 이름을 위해 suffix 추가
+  const MONGODB_TEST_URI = (() => {
+    const [base, query] = BASE_MONGODB_URI.split("?");
+    const lastSlash = base.lastIndexOf("/");
+    if (lastSlash === -1) return BASE_MONGODB_URI;
+    const dbName = base.slice(lastSlash + 1);
+    const newBase = `${base.slice(0, lastSlash + 1)}${dbName}_object`;
+    return query ? `${newBase}?${query}` : newBase;
+  })();
 
   // Helper function to create authenticated request
   const createAuthRequest = (token?: string) => {
-    return request(app)
-      .set("Authorization", `Bearer ${token || "test-user-token"}`)
-      .set("Content-Type", "application/json");
+    const authHeader = `Bearer ${token || "test-user-token"}`;
+    return {
+      get: (path: string) =>
+        request(app)
+          .get(path)
+          .set("Authorization", authHeader)
+          .set("Content-Type", "application/json"),
+      post: (path: string) =>
+        request(app)
+          .post(path)
+          .set("Authorization", authHeader)
+          .set("Content-Type", "application/json"),
+      patch: (path: string) =>
+        request(app)
+          .patch(path)
+          .set("Authorization", authHeader)
+          .set("Content-Type", "application/json"),
+      delete: (path: string) =>
+        request(app)
+          .delete(path)
+          .set("Authorization", authHeader)
+          .set("Content-Type", "application/json"),
+    };
   };
 
   // Helper function to create admin authenticated request
   const createAdminRequest = (token?: string) => {
-    return request(app)
-      .set("Authorization", `Bearer ${token || "test-admin-token"}`)
-      .set("Content-Type", "application/json");
+    const authHeader = `Bearer ${token || "test-admin-token"}`;
+    return {
+      get: (path: string) =>
+        request(app)
+          .get(path)
+          .set("Authorization", authHeader)
+          .set("Content-Type", "application/json"),
+      post: (path: string) =>
+        request(app)
+          .post(path)
+          .set("Authorization", authHeader)
+          .set("Content-Type", "application/json"),
+      patch: (path: string) =>
+        request(app)
+          .patch(path)
+          .set("Authorization", authHeader)
+          .set("Content-Type", "application/json"),
+      delete: (path: string) =>
+        request(app)
+          .delete(path)
+          .set("Authorization", authHeader)
+          .set("Content-Type", "application/json"),
+    };
   };
 
   beforeAll(async () => {
@@ -142,7 +196,10 @@ describe("Object Integration Tests", () => {
         leftWallColor: "#FFFFFF",
         rightWallColor: "#FFFFFF",
         weather: "sunny",
-        backgroundMusic: { url: "", name: "" },
+        backgroundMusic: {
+          url: "https://example.com/music.mp3",
+          name: "Test Music",
+        },
       },
       objectIds: [],
       questionIndex: 0,
@@ -157,7 +214,10 @@ describe("Object Integration Tests", () => {
         leftWallColor: "#FFFFFF",
         rightWallColor: "#FFFFFF",
         weather: "sunny",
-        backgroundMusic: { url: "", name: "" },
+        backgroundMusic: {
+          url: "https://example.com/music.mp3",
+          name: "Admin Music",
+        },
       },
       objectIds: [],
       questionIndex: 0,

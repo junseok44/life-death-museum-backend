@@ -15,12 +15,8 @@ import { Request, Response, NextFunction } from "express";
 import { modifiedRouter } from "../src/controller/modified";
 import { ImageObject, OnType } from "../src/models/ObjectModel";
 import { User } from "../src/models/UserModel";
-import {
-  ModifiedObject,
-  ModifiedObjectModel,
-} from "../src/models/ModifiedObject";
+import { ModifiedObjectModel } from "../src/models/ModifiedObject";
 import { ModifiedService } from "../src/services/modifiedService";
-import { ItemFunction } from "../src/types";
 
 // Mock authentication middleware (same pattern as object.integration.test.ts)
 interface GlobalTestUsers {
@@ -228,7 +224,9 @@ describe("Modified Integration Tests", () => {
       const body = {
         name: "Modified Object",
         currentImageSetId: baseCurrentImageSetId,
-        originalObjectId: baseImageObject._id.toString(),
+        originalObjectId: (
+          baseImageObject._id as mongoose.Types.ObjectId
+        ).toString(),
         itemFunction: null,
         coordinates: { x: 0.5, y: 0.5 },
         onType: OnType.Floor,
@@ -237,9 +235,7 @@ describe("Modified Integration Tests", () => {
         additionalData: {}, // allowed when itemFunction is null
       };
 
-      const response = await createAuthRequest()
-        .post("/modified")
-        .send(body);
+      const response = await createAuthRequest().post("/modified").send(body);
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("_id");
@@ -250,9 +246,9 @@ describe("Modified Integration Tests", () => {
       const user = await User.findById(testUser._id);
       expect(user).not.toBeNull();
       expect(user!.modifiedObjectIds).toHaveLength(1);
-      expect(
-        user!.modifiedObjectIds[0].toString()
-      ).toBe(response.body._id.toString());
+      expect(user!.modifiedObjectIds[0].toString()).toBe(
+        response.body._id.toString()
+      );
     });
   });
 
@@ -263,7 +259,9 @@ describe("Modified Integration Tests", () => {
         {
           name: "Original Name",
           currentImageSetId: baseCurrentImageSetId,
-          originalObjectId: baseImageObject._id.toString(),
+          originalObjectId: (
+            baseImageObject._id as mongoose.Types.ObjectId
+          ).toString(),
           itemFunction: null,
           coordinates: { x: 0.2, y: 0.3 },
           onType: OnType.Floor,
@@ -317,7 +315,9 @@ describe("Modified Integration Tests", () => {
       // 2개의 modified object 생성
       const paramsBase = {
         currentImageSetId: baseCurrentImageSetId,
-        originalObjectId: baseImageObject._id.toString(),
+        originalObjectId: (
+          baseImageObject._id as mongoose.Types.ObjectId
+        ).toString(),
         coordinates: { x: 0.1, y: 0.2 },
         onType: OnType.Floor,
         description: "desc",
@@ -365,7 +365,9 @@ describe("Modified Integration Tests", () => {
         {
           name: "To Be Deleted",
           currentImageSetId: baseCurrentImageSetId,
-          originalObjectId: baseImageObject._id.toString(),
+          originalObjectId: (
+            baseImageObject._id as mongoose.Types.ObjectId
+          ).toString(),
           itemFunction: null,
           coordinates: { x: 0.3, y: 0.4 },
           onType: OnType.Floor,
@@ -397,9 +399,7 @@ describe("Modified Integration Tests", () => {
     it("should return 404 when trying to delete non-existing modified object", async () => {
       const fakeId = new mongoose.Types.ObjectId().toString();
 
-      const response = await createAuthRequest().delete(
-        `/modified/${fakeId}`
-      );
+      const response = await createAuthRequest().delete(`/modified/${fakeId}`);
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty(
@@ -409,5 +409,3 @@ describe("Modified Integration Tests", () => {
     });
   });
 });
-
-

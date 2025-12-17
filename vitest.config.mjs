@@ -9,6 +9,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["src/**/*.test.ts", "tests/**/*.test.ts"],
+    setupFiles: [path.resolve(__dirname, "./vitest.setup.ts")],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
